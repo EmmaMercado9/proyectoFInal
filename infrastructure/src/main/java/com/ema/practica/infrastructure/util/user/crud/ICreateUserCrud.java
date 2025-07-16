@@ -1,16 +1,15 @@
-package com.ema.practica.infrastructure.user.crud;
+package com.ema.practica.infrastructure.util.user.crud;
 
-import com.ema.practica.core.user.model.User;
-import com.ema.practica.infrastructure.product.entity.ProductEntity;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public interface ICreateUserCrud  extends CrudRepository<UserEntity,Long> {
+public interface ICreateUserCrud  extends CrudRepository<UserEntity, UUID> {
 
     boolean existsByMail(String email);
-    boolean existsByName(String name);
 
 
 }

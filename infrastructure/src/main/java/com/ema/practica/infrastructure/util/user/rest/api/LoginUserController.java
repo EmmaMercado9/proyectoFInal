@@ -1,60 +1,49 @@
-package com.ema.practica.infrastructure.user.rest.api;
+package com.ema.practica.infrastructure.util.user.rest.api;
 
-import com.ema.practica.core.user.input.ILoginUserInput;
-
-import com.ema.practica.core.user.model.User;
-import com.ema.practica.infrastructure.user.crud.ILoginUserCrud;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
-import com.ema.practica.infrastructure.user.rest.model.UserDTO;
+import com.ema.practica.infrastructure.util.user.crud.ILoginUserCrud;
+import com.ema.practica.infrastructure.util.user.entitty.SecurityUser;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.rest.model.RequestLogin;
+import com.ema.practica.infrastructure.util.user.rest.model.UserDTO;
 import com.ema.practica.infrastructure.util.Jwt;
-import lombok.RequiredArgsConstructor;
+import com.ema.practica.infrastructure.util.user.useCases.LoginUserUseCaseImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
-
 import java.util.Collections;
-
-
 @RestController
 @RequestMapping("/loggin")
 @CrossOrigin("*")
 public class LoginUserController {
-
     private final AuthenticationManager authenticationManager;
-    private final Jwt jwtUtil; // Inyectar JwtUtil
-
-    private final ILoginUserCrud iLoginUserCrud;
+    private final Jwt jwtUtil;
+    private final LoginUserUseCaseImp  loginUserUseCaseImp;
     @Autowired
-    public LoginUserController(AuthenticationManager authenticationManager,Jwt jwtUtil,ILoginUserCrud iLoginUserCrud){
+    public LoginUserController(AuthenticationManager authenticationManager,Jwt jwtUtil,LoginUserUseCaseImp loginUserUseCaseImp){
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.iLoginUserCrud = iLoginUserCrud;
+        this.loginUserUseCaseImp = loginUserUseCaseImp;
     }
-
     @PostMapping
-    public ResponseEntity<?> loginUser(@RequestBody UserDTO userDTO) {
-            try {
-                // Crear un token de autenticación basado en los datos del usuario
-                Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(userDTO.getMail(), userDTO.getPassword())
-                );
-
-                System.out.println(userDTO.getIdUser()+userDTO.getRole());
-                UserEntity userEntity =iLoginUserCrud.findFirstByMail(userDTO.getMail());
-                // Si la autenticación es exitosa, generar el token
-                String token = jwtUtil.generateToken(userEntity);
-                return ResponseEntity.ok(Collections.singletonMap("token", token)); // Devolver el token
-            } catch (AuthenticationException e) {
-                // Si la autenticación falla, devolver una excepción de credenciales incorrectas
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
-
+    public ResponseEntity<?> loginUser(@RequestBody RequestLogin requestLogin) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(requestLogin.getEmail(), requestLogin.getPassword())
+            );
+            SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+            UserEntity userEntity = securityUser.getUserEntity();
+            if (!loginUserUseCaseImp.loginValidateStatus(userEntity)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid user se encuentra inactivo");
             }
+            String token = jwtUtil.generateToken(userEntity);
+            return ResponseEntity.ok(Collections.singletonMap("token", token));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
+    }
 }
-

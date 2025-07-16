@@ -1,7 +1,5 @@
 package com.ema.practica.infrastructure.category.useCases;
 
-import com.ema.practica.core.category.model.CategoryProduct;
-import com.ema.practica.core.category.output.IRepositoryConsultCategory;
 import com.ema.practica.infrastructure.category.crud.IConsultCategoryCrud;
 import com.ema.practica.infrastructure.category.entity.CategoryProductEntity;
 
@@ -14,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
-public class ConsultCategoryUseCaseImp implements IRepositoryConsultCategory {
+public class ConsultCategoryUseCaseImp {
 
     IConsultCategoryCrud iConsultCategoryCrud;
     @Autowired
@@ -22,10 +20,9 @@ public class ConsultCategoryUseCaseImp implements IRepositoryConsultCategory {
         this.iConsultCategoryCrud=iConsultCategoryCrud;
     }
 
-    @Override
-    public Collection<CategoryProduct> getCategoryProducts() {
+    public Collection<CategoryProductEntity> getCategoryProducts() {
         Iterable<CategoryProductEntity> categoryProductEntities = iConsultCategoryCrud.findAll();
-        return StreamSupport.stream(categoryProductEntities.spliterator(), false).map(CategoryProductEntity::entityToCore).collect(Collectors.toList());
+        return StreamSupport.stream(categoryProductEntities.spliterator(), false).collect(Collectors.toList());
     }
 
 

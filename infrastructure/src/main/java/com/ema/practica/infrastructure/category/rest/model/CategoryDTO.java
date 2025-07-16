@@ -1,9 +1,6 @@
 package com.ema.practica.infrastructure.category.rest.model;
 
-import com.ema.practica.core.cart.model.Cart;
-import com.ema.practica.core.category.model.CategoryProduct;
-import com.ema.practica.core.product.model.Product;
-import com.ema.practica.core.user.model.User;
+import com.ema.practica.infrastructure.category.entity.CategoryProductEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -25,15 +22,15 @@ public class CategoryDTO {
 
 
 
-    public    CategoryProduct dtoToCore() {
-        return CategoryProduct.Instance(idCategory,nameCategory);
+    public CategoryProductEntity dtoToEntity() {
+        return new CategoryProductEntity(idCategory,nameCategory);
     }
 
     // Método para convertir de Core a DTO
-    public  static CategoryDTO coreToDTO(CategoryProduct categoryProduct) {
+    public  static CategoryDTO entityToDTO(CategoryProductEntity categoryProductEntity) {
         return new CategoryDTO(
-                categoryProduct.getIdCategory(),
-                categoryProduct.getNameCategory()
+                categoryProductEntity.getIdCategory(),
+                categoryProductEntity.getNameCategory()
         );
     }
 

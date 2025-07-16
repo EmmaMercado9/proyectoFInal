@@ -1,8 +1,8 @@
-package com.ema.practica.infrastructure.servicesDetailUser;
+package com.ema.practica.infrastructure.util.servicesDetailUser;
 
-import com.ema.practica.infrastructure.user.crud.ILoginUserCrud;
-import com.ema.practica.infrastructure.user.entitty.SecurityUser;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.crud.ILoginUserCrud;
+import com.ema.practica.infrastructure.util.user.entitty.SecurityUser;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,14 +12,16 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-@AllArgsConstructor
 public class UserDetailServiceImp  implements UserDetailsService {
+    private final ILoginUserCrud iLoginUserCrud;
     @Autowired
-    ILoginUserCrud iLoginUserCrud;
+    public  UserDetailServiceImp(ILoginUserCrud iLoginUserCrud){
+        this.iLoginUserCrud=iLoginUserCrud;
+    }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity userEntity=iLoginUserCrud.findFirstByMail(username);
+    public UserDetails loadUserByUsername(String mail) throws UsernameNotFoundException {
+        UserEntity userEntity=iLoginUserCrud.findUserEntityByMail(mail);
         if(userEntity==null){
             throw new UsernameNotFoundException("User not found");
         }

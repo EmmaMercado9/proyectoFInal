@@ -1,9 +1,9 @@
-package com.ema.practica.infrastructure.user.rest.api;
+package com.ema.practica.infrastructure.util.user.rest.api;
 
 
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
-import com.ema.practica.infrastructure.user.rest.model.UserDTO;
-import com.ema.practica.infrastructure.user.useCases.DeleteUserUseCaseImp;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.rest.model.UserDTO;
+import com.ema.practica.infrastructure.util.user.useCases.DeleteUserUseCaseImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,6 +1,5 @@
 package com.ema.practica.infrastructure.product.entity;
 
-import com.ema.practica.core.product.model.Product;
 import com.ema.practica.infrastructure.category.entity.CategoryProductEntity;
 import com.ema.practica.infrastructure.images.ImageModel;
 import com.ema.practica.infrastructure.sizes.SizeEntity;
@@ -17,6 +16,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.engine.jdbc.Size;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,24 +54,11 @@ public class ProductEntity {
     @JsonIgnore
     private List<SizeEntity> sizes = new ArrayList<>();
 
-    @ManyToMany(fetch=FetchType.EAGER ,cascade = CascadeType.ALL)
-    @JoinTable(name="product_images",
-        joinColumns={
-            @JoinColumn(name="product_id")
-        },inverseJoinColumns = {
-            @JoinColumn(name = "image_id")
-
-    }
-    )
-    private Set<ImageModel> imageModelSet;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<ImageModel> imageModelSet= new HashSet<>();;
 
 
-    public Product entityToCore() {
-        return Product.getInstance(this.getIdProduct(),this.getCategoryProduct().entityToCore(),this.getNameProduct(),this.getPriceUnitary(),this.getDiscontuedPrice(),this.getDescriptionProduct(),this.isStatus(),this.getColor(),this.getSizes().stream().map(SizeEntity::entityToCore).toList(),this.getImageModelSet().stream().map(ImageModel::entityToCore).collect(Collectors.toSet()));
-    }
 
-    public static ProductEntity coreToEntity(Product product) {
-        return new ProductEntity(product.getIdProduct(),CategoryProductEntity.coreToEntity(product.getCategory()),product.getNameProduct(),product.getPriceUnitary(),product.getDiscontuedPrice(),product.getDescriptionProduct(),product.isStatus(),product.getColor(),product.getSizes().stream().map(SizeEntity::coreToEntity).toList(),product.getImageMSet().stream().map(ImageModel::coreToEntity).collect(Collectors.toSet()));
-    }
 
 }

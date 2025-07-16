@@ -1,7 +1,5 @@
 package com.ema.practica.infrastructure.product.rest.api;
 
-import com.ema.practica.core.product.input.IListProductInput;
-import com.ema.practica.core.product.model.Product;
 import com.ema.practica.infrastructure.product.entity.ProductEntity;
 import com.ema.practica.infrastructure.product.rest.model.ProductDTO;
 import com.ema.practica.infrastructure.product.useCases.ListProductUseCaseImp;
@@ -15,31 +13,39 @@ import java.util.*;
 @RestController
 @CrossOrigin("*")
 public class GetAllProductController {
-    private final IListProductInput iListProductInput;
     private final ListProductUseCaseImp listProductUseCaseImp;
 
     @Autowired
-    public GetAllProductController(IListProductInput iListProductInput, ListProductUseCaseImp listProductUseCaseImp){
-        this.iListProductInput=iListProductInput;
+    public GetAllProductController(ListProductUseCaseImp listProductUseCaseImp){
         this.listProductUseCaseImp = listProductUseCaseImp;
     }
 
     @GetMapping("/getAllProducts")
 
     public ResponseEntity<List<ProductDTO>> GetAllProducts(){
-        Collection<Product> list=iListProductInput.getProducts();
-        List<ProductDTO> productDTOList=list.stream().map(ProductDTO::coreToDTO).toList();
+        Collection<ProductEntity> list=listProductUseCaseImp.getProducts();
+        List<ProductDTO> productDTOList=list.stream().map(ProductDTO::entityToDTO).toList();
         return ResponseEntity.status(HttpStatus.OK).body(productDTOList);
     }
-    @GetMapping("/{product_id}")
+    @GetMapping("/getProductById/{product_id}")
     public ResponseEntity<Object> getProductById(@PathVariable("product_id") Long product_id){
-       Optional<ProductEntity> productEntityOptional=this.listProductUseCaseImp.getProductId(product_id);
-       if(productEntityOptional.isEmpty()){
+       ProductEntity product=this.listProductUseCaseImp.getProductId(product_id);
+       if(product==null){
            Map<String, String> response = new HashMap<>();
            response.put("message", "No encontrado");
            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
        }
-       return new ResponseEntity<>(productEntityOptional.get(),HttpStatus.OK);
+       return ResponseEntity.status(HttpStatus.OK).body(ProductDTO.entityToDTO(product));
+    }
+    @PostMapping("/by-ids")
+    public ResponseEntity<List<?>> getProductsByIds(@RequestBody List<Long> ids){
+        List<ProductEntity> products=listProductUseCaseImp.getProductsByIds(ids);
+        if(!products.isEmpty()){
+        return ResponseEntity.status(HttpStatus.OK).body(products.stream().map(ProductDTO::entityToDTO).toList());
+        }else{
+            return ResponseEntity.noContent().build();
+
+        }
     }
     @GetMapping("related/{category_id}/{product_id}")
     public ResponseEntity<Object> getRelatedProduct(@PathVariable("category_id") Long  category_id, @PathVariable("product_id") Long product_id){
@@ -50,7 +56,7 @@ public class GetAllProductController {
         if (listProductUseCaseImp.getProductsByIdCategory(category_id).isEmpty()){
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(listProductUseCaseImp.getProductsByIdCategory(category_id).stream().map(ProductDTO::coreToDTO).toList());
+        return ResponseEntity.ok(listProductUseCaseImp.getProductsByIdCategory(category_id).stream().map(ProductDTO::entityToDTO).toList());
     }
 
 

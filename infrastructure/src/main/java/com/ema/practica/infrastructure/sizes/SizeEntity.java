@@ -1,9 +1,6 @@
 package com.ema.practica.infrastructure.sizes;
 
-import com.ema.practica.core.product.model.Product;
-import com.ema.practica.core.sizes.Size;
-import com.ema.practica.infrastructure.category.entity.CategoryProductEntity;
-import com.ema.practica.infrastructure.product.entity.ProductEntity;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,11 +25,6 @@ public class SizeEntity {
 
 
 
-    public static Size entityToCore(SizeEntity size) {
-        return new Size(size.getIdsize(),size.getSize(),size.getStock(),size.isAvailable());
-    }
-    public static SizeEntity coreToEntity(Size size) {
-        return new SizeEntity(size.getId(),size.getSize(),size.getStock(),size.isAvailable());
-    }
+
 
 }

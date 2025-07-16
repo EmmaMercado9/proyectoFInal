@@ -34,7 +34,7 @@
 
 	<packaging>pom</packaging>
 	<modules>
-		<module>core</module>
+		<module>infrastructure</module>
 	</modules>
 
 </project>

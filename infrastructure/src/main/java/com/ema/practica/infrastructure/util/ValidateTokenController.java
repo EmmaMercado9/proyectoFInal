@@ -1,4 +1,4 @@
-package com.ema.practica.infrastructure.product.rest.api;
+package com.ema.practica.infrastructure.util;
 
 import com.ema.practica.infrastructure.util.Jwt;
 import io.jsonwebtoken.JwtException;

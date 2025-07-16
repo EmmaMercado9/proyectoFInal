@@ -1,13 +1,14 @@
-package com.ema.practica.infrastructure.user.crud;
+package com.ema.practica.infrastructure.util.user.crud;
 
-import com.ema.practica.core.user.model.User;
-import com.ema.practica.infrastructure.product.entity.ProductEntity;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public interface IDeleteUserCrud extends CrudRepository<UserEntity,Long> {
+public interface IDeleteUserCrud extends CrudRepository<UserEntity,UUID> {
 
     boolean existsByName(String name);
+    boolean deleteByIdUser(UUID uuid);
 }

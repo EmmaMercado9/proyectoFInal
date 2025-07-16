@@ -1,7 +1,7 @@
-package com.ema.practica.infrastructure.user.useCases;
+package com.ema.practica.infrastructure.util.user.useCases;
 
-import com.ema.practica.infrastructure.user.crud.ICreateUserCrud;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.crud.ICreateUserCrud;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +19,6 @@ public class CreateUserUseCaseImp  {
         return iCreateUserCrud.existsByMail(mail);
     }
 
-    public boolean userNameExist(String userName) {
-        return iCreateUserCrud.existsByName(userName);
-    }
 
 
     public boolean SaveUser(UserEntity userEntity) {

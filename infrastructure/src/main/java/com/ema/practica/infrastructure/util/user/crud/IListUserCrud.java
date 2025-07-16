@@ -1,16 +1,14 @@
-package com.ema.practica.infrastructure.user.crud;
+package com.ema.practica.infrastructure.util.user.crud;
 
-import com.ema.practica.core.user.model.User;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-@Repository
-public interface IListUserCrud extends CrudRepository<UserEntity,Long> {
+import java.util.UUID;
 
-    UserEntity findByIdUser(Long id);
+@Repository
+public interface IListUserCrud extends CrudRepository<UserEntity, UUID> {
+
     UserEntity findByMail(String email);
-    UserEntity findByName(String name);
 
 }

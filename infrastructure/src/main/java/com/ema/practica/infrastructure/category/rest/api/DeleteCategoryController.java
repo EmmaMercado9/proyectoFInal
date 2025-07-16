@@ -1,11 +1,7 @@
 package com.ema.practica.infrastructure.category.rest.api;
-
-import com.ema.practica.core.cart.input.IDeleteProductCartInput;
-import com.ema.practica.core.cart.model.Cart;
-import com.ema.practica.core.category.input.IDeleteCategoryInput;
-import com.ema.practica.core.category.model.CategoryProduct;
-import com.ema.practica.infrastructure.category.rest.model.CategoryDTO;
+import com.ema.practica.infrastructure.category.useCases.DeleteCategoryUseCaseImp;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,17 +11,20 @@ import org.springframework.web.bind.annotation.*;
 
 public class DeleteCategoryController {
 
-    IDeleteCategoryInput iDeleteCategoryInput;
+    private final DeleteCategoryUseCaseImp deleteCategoryUseCaseImp;
     @Autowired
-
-    public DeleteCategoryController(IDeleteCategoryInput iDeleteCategoryInput){
-        this.iDeleteCategoryInput=iDeleteCategoryInput;
+    public DeleteCategoryController(DeleteCategoryUseCaseImp deleteCategoryUseCaseImp){
+        this.deleteCategoryUseCaseImp=deleteCategoryUseCaseImp;
     }
 
-    @DeleteMapping()
-    public ResponseEntity<?> loginUser(@RequestBody CategoryDTO categoryDTO){
-        CategoryProduct categoryProduct=categoryDTO.dtoToCore();
-        boolean resultado=iDeleteCategoryInput.deleteCategory(categoryProduct);
-        return ResponseEntity.ok().body(resultado);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable Long id){
+
+        boolean resultado=deleteCategoryUseCaseImp.deleteCategory(id);
+        if (resultado) {
+            return ResponseEntity.ok().body("Categoría eliminada correctamente");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Categoría no encontrada");
+        }
     }
 }

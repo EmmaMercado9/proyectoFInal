@@ -1,10 +1,6 @@
 package com.ema.practica.infrastructure.images;
 
-import com.ema.practica.core.images.ImageM;
-import com.ema.practica.core.product.model.Product;
-import com.ema.practica.infrastructure.category.entity.CategoryProductEntity;
 import com.ema.practica.infrastructure.product.entity.ProductEntity;
-import com.ema.practica.infrastructure.sizes.SizeEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,24 +16,32 @@ import lombok.Setter;
 public class ImageModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
+    @Column(name = "name")
+
     private String name;
-    private String type;
-    @Column(length = 50000000)
-    private byte[] picByte;
+    @Column(name = "url")
 
-    public ImageModel(String originalFilename, String contentType, byte[] bytes) {
+    private String url;
+    @Column(name = "imageId")
+
+    private String imageId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false) // Clave foránea en "image_model"
+    private ProductEntity product;
+
+    public ImageModel(String originalFilename, String imageUrl, String imageId) {
         this.name = originalFilename;
-        this.type = contentType;
-        this.picByte = bytes;
+        this.url = imageUrl;
+        this.imageId = imageId;
     }
 
-    public ImageM entityToCore() {
-        return new ImageM(this.getId(),this.getName(),this.getType(),this.getPicByte());
-    }
-
-    public static ImageModel coreToEntity(ImageM imageM) {
-        return new ImageModel(imageM.getId(),imageM.getName(),imageM.getType(),imageM.getPicByte());
+    public ImageModel(Long id, String name, String url, String imageId) {
+        this.id = id;
+        this.name = name;
+        this.url = url;
+        this.imageId = imageId;
     }
 
 }

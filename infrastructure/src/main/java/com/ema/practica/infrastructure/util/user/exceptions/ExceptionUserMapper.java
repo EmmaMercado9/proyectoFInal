@@ -1,4 +1,4 @@
-package com.ema.practica.infrastructure.user.exceptions;
+package com.ema.practica.infrastructure.util.user.exceptions;
 
 public class ExceptionUserMapper extends RuntimeException{
 

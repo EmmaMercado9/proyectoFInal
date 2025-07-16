@@ -1,10 +1,6 @@
 package com.ema.practica.infrastructure.order.entity;
-import com.ema.practica.core.order.model.Order;
-import com.ema.practica.infrastructure.detailOrder.entity.DetailOrderEntity;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.*;
 
 @Entity
 @Setter
@@ -32,9 +27,6 @@ public class OrderEntity {
     private UserEntity user;
     @Column(name="payment")
     private String payment;
-    @OneToMany(cascade = CascadeType.ALL ,fetch = FetchType.EAGER)
-    @JsonIgnore
-    private List<DetailOrderEntity> detailOrders = new ArrayList<>();
     @Column(name = "orderdate")
     private LocalDate orderDate;
     @Column(name = "totalamount")
@@ -47,14 +39,5 @@ public class OrderEntity {
         this.orderDate = now;
         this.user = userEntity;
         this.status = status;
-    }
-
-    public Order entityToCore() {
-        return Order.getInstance(this.getIdOrder(), this.getUser().entityToCore(),this.getPayment(), this.getDetailOrders().stream().map(DetailOrderEntity::entityToCore).toList(),this.getOrderDate(),this.getTotalAmount(),this.getStatus());
-    }
-
-    public static OrderEntity coreToEntity(Order order) {
-
-        return new OrderEntity(order.getIdOrder(),UserEntity.coreToEntity(order.getUser()),order.getPayment(),order.getDetailOrders().stream().map(DetailOrderEntity::coreToEntity).toList(),order.getOrderDate(),order.getTotalAmount(),order.getStatus());
     }
 }

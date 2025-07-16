@@ -1,7 +1,8 @@
-package com.ema.practica.infrastructure.user.useCases;
+package com.ema.practica.infrastructure.util.user.useCases;
 
-import com.ema.practica.infrastructure.user.crud.ILoginUserCrud;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.status.StatusEntity;
+import com.ema.practica.infrastructure.util.user.crud.ILoginUserCrud;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,9 @@ public class LoginUserUseCaseImp {
     }
 
 
-    public UserEntity searchUserByName(String userName) {
-        return  iLoginUserCrud.searchByName(userName);
+
+    public boolean loginValidateStatus(UserEntity userEntity){
+        return userEntity.getStatus() == StatusEntity.ACTIVO;
+
     }
 }

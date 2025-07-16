@@ -1,15 +1,14 @@
-package com.ema.practica.infrastructure.user.rest.model;
+package com.ema.practica.infrastructure.util.user.rest.model;
 
-import com.ema.practica.core.home.model.Home;
-import com.ema.practica.core.user.model.User;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.rol.Rol;
+import com.ema.practica.infrastructure.util.status.StatusEntity;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @AllArgsConstructor
@@ -17,8 +16,7 @@ import java.util.stream.Collectors;
 
 public class UserDTO {
 
-    private Long idUser;
-
+    private UUID idUser;
     @JsonProperty(value="role")
     private String role;
     @JsonProperty(value="name")
@@ -27,9 +25,10 @@ public class UserDTO {
     private String mail;
     @JsonProperty(value="password")
     private String password;
-
+    @JsonProperty(value="status")
+    private String status;
     public UserEntity dtoToEntity() {
-        return new UserEntity(idUser,role, name, mail, password);
+        return new UserEntity(idUser, Rol.valueOf(role.toUpperCase()), name, mail, password,StatusEntity.valueOf(status.toUpperCase()));
     }
 
 
@@ -37,10 +36,12 @@ public class UserDTO {
     public  static  UserDTO entityToDTO(UserEntity user) {
         return new UserDTO(
                 user.getIdUser(),
-                user.getRole(),
+                user.getRol().name(),
                 user.getName(),
                 user.getMail(),
-                user.getPassword()
+                user.getPassword(),
+                user.getStatus().name()
+
         );
     }
 }

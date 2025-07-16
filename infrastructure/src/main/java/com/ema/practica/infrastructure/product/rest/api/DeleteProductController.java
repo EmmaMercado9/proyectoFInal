@@ -1,11 +1,6 @@
 package com.ema.practica.infrastructure.product.rest.api;
 
-import com.ema.practica.core.category.model.CategoryProduct;
-import com.ema.practica.core.product.input.IDeleteProductInput;
-import com.ema.practica.core.product.model.Product;
-
-import com.ema.practica.infrastructure.product.rest.model.ProductDTO;
-import com.ema.practica.infrastructure.product.useCases.ListProductUseCaseImp;
+import com.ema.practica.infrastructure.product.useCases.DeleteProductUseCasesImp;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,15 +10,15 @@ import org.springframework.web.bind.annotation.*;
 
 public class DeleteProductController {
 
-    private  final IDeleteProductInput iDeleteProductInput;
-    public DeleteProductController(IDeleteProductInput iDeleteProductInput){
-        this.iDeleteProductInput=iDeleteProductInput;
+    private  final DeleteProductUseCasesImp deleteProductUseCasesImp;
+    public DeleteProductController(DeleteProductUseCasesImp deleteProductUseCasesImp){
+        this.deleteProductUseCasesImp=deleteProductUseCasesImp;
     }
 
     @DeleteMapping()
     public ResponseEntity<?> loginUser(@RequestBody Long product_id) throws Exception {
 
-        boolean resultado=iDeleteProductInput.deleteProduct(product_id);
+        boolean resultado=deleteProductUseCasesImp.deleteProduct(product_id);
         return ResponseEntity.ok().body(resultado);
     }
 }

@@ -1,9 +1,9 @@
-package com.ema.practica.infrastructure.user.rest.api;
+package com.ema.practica.infrastructure.util.user.rest.api;
 
-import com.ema.practica.core.user.input.IModifyUserInput;
-
-import com.ema.practica.core.user.model.User;
-import com.ema.practica.infrastructure.user.rest.model.UserDTO;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.rest.model.UserDTO;
+import com.ema.practica.infrastructure.util.user.useCases.ModifyUserUseCaseImp;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin("*")
 
 public class ModifyUserController {
-    IModifyUserInput iModifyUserInput;
 
-
-    public  ModifyUserController(IModifyUserInput iModifyUserInput){
-        this.iModifyUserInput=iModifyUserInput;
+    private final ModifyUserUseCaseImp modifyUserUseCaseImp;
+    @Autowired
+    public  ModifyUserController(ModifyUserUseCaseImp modifyUserUseCaseImp){
+        this.modifyUserUseCaseImp=modifyUserUseCaseImp;
     }
 
     @PutMapping
     public ResponseEntity<?> modifyUser(@RequestBody UserDTO userDTO) throws Exception {
-        User user=userDTO.dtoToCore();
-        boolean result = iModifyUserInput.ModifyUser(user.getName(),user.getPassword(),user.getMail(),user.getHome(),user.getIdUser());
+        UserEntity user=userDTO.dtoToEntity();
+        boolean result = modifyUserUseCaseImp.modifyUser(user,user.getIdUser());
         return ResponseEntity.ok().body(result);
     }
 

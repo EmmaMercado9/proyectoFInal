@@ -1,7 +1,7 @@
-package com.ema.practica.infrastructure.user.useCases;
+package com.ema.practica.infrastructure.util.user.useCases;
 
-import com.ema.practica.infrastructure.user.crud.IListUserCrud;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.crud.IListUserCrud;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Collection;

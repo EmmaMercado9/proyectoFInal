@@ -1,9 +1,11 @@
-package com.ema.practica.infrastructure.user.useCases;
+package com.ema.practica.infrastructure.util.user.useCases;
 
-import com.ema.practica.infrastructure.user.crud.IModifyUserCrud;
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.crud.IModifyUserCrud;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 
 @Service
@@ -22,12 +24,12 @@ public class ModifyUserUseCaseImp {
         return iModifyUserCrud.searchUserEntitiesByName(userName);
     }
 
-    public UserEntity get_Current_User(Long idCurrentUser) {
+    public UserEntity get_Current_User(UUID idCurrentUser) {
         return (iModifyUserCrud.findAllByIdUser(idCurrentUser));
     }
 
 
-    public boolean modifyUser(UserEntity user, Long idCurrentUser) throws Exception {
+    public boolean modifyUser(UserEntity user, UUID idCurrentUser) throws Exception {
         UserEntity userEntity=iModifyUserCrud.findAllByIdUser(idCurrentUser);
         if(userEntity!=null) {
             userEntity.setName(user.getName());

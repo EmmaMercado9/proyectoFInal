@@ -1,9 +1,6 @@
 package com.ema.practica.infrastructure.category.entity;
 
-import com.ema.practica.core.category.model.CategoryProduct;
-import com.ema.practica.core.product.model.Product;
-import com.ema.practica.infrastructure.product.entity.ProductEntity;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,11 +25,5 @@ public class CategoryProductEntity {
     @Column(name = "namecategory")
     private String nameCategory;
 
-    public CategoryProduct entityToCore() {
-        return CategoryProduct.Instance(this.getIdCategory(), this.getNameCategory());
-    }
 
-    public static CategoryProductEntity coreToEntity(CategoryProduct categoryProduct) {
-        return new CategoryProductEntity(categoryProduct.getIdCategory(),categoryProduct.getNameCategory());
-    }
 }

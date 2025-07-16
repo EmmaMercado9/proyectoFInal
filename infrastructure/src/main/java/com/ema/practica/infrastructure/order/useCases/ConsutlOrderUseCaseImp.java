@@ -1,7 +1,4 @@
 package com.ema.practica.infrastructure.order.useCases;
-
-import com.ema.practica.core.order.model.Order;
-import com.ema.practica.core.order.output.IRepositoryConsultOrder;
 import com.ema.practica.infrastructure.order.crud.IConsultOrderCrud;
 import com.ema.practica.infrastructure.order.entity.OrderEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,27 +11,26 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
-public class ConsutlOrderUseCaseImp implements IRepositoryConsultOrder {
+public class ConsutlOrderUseCaseImp {
     private final IConsultOrderCrud iConsultOrderCrud;
     @Autowired
     public ConsutlOrderUseCaseImp(IConsultOrderCrud iConsultOrderCrud){
         this.iConsultOrderCrud=iConsultOrderCrud;
     }
 
-    @Override
-    public Collection<Order> getOrders() {
+    public Collection<OrderEntity> getOrders() {
         Iterable<OrderEntity> orderEntities = iConsultOrderCrud.findAll();
-        return StreamSupport.stream(orderEntities.spliterator(), false).map(OrderEntity::entityToCore).collect(Collectors.toList());
+        return StreamSupport.stream(orderEntities.spliterator(), false).collect(Collectors.toList());
 
     }
 
-    public Order getOrderById(Long orderId){
+    public OrderEntity getOrderById(Long orderId){
         Optional<OrderEntity> orderEntity=(iConsultOrderCrud.findById(orderId));
-        return orderEntity.map(OrderEntity::entityToCore).orElse(null);
+        return orderEntity.orElse(null);
     }
 
-    public List<Order> getOrderByUser(String name){
-       return this.iConsultOrderCrud.findByUser_Name(name).stream().map(OrderEntity::entityToCore).toList();
+    public List<OrderEntity> getOrderByUser(String name){
+       return this.iConsultOrderCrud.findByUser_Name(name).stream().toList();
     }
 
 

@@ -1,9 +1,5 @@
 package com.ema.practica.infrastructure.order.rest.api;
 
-import com.ema.practica.core.cart.input.IConsultCartInput;
-import com.ema.practica.core.cart.model.Cart;
-import com.ema.practica.core.order.input.IConsultOrderInput;
-import com.ema.practica.core.order.model.Order;
 import com.ema.practica.infrastructure.order.entity.OrderEntity;
 import com.ema.practica.infrastructure.order.rest.model.OrderDTO;
 import com.ema.practica.infrastructure.order.useCases.ConsutlOrderUseCaseImp;
@@ -22,20 +18,18 @@ import java.util.List;
 @CrossOrigin("*")
 
 public class GetAllOrderController {
-    private final IConsultOrderInput IConsultOrderInput;
     private  final ConsutlOrderUseCaseImp consutlOrderUseCaseImp;
 
-    public GetAllOrderController(IConsultOrderInput IConsultOrderInput, ConsutlOrderUseCaseImp consutlOrderUseCaseImp){
-        this.IConsultOrderInput=IConsultOrderInput;
+    public GetAllOrderController(ConsutlOrderUseCaseImp consutlOrderUseCaseImp){
         this.consutlOrderUseCaseImp = consutlOrderUseCaseImp;
     }
 
     @GetMapping()
 
     public ResponseEntity<List<OrderDTO>> GetAllOrders(){
-        Collection<Order> list=IConsultOrderInput.getOrders();
+        Collection<OrderEntity> list=consutlOrderUseCaseImp.getOrders();
 
-        List<OrderDTO> list1=list.stream().map(OrderDTO::coreToDTO).toList();
+        List<OrderDTO> list1=list.stream().map(OrderDTO::entityToDTO).toList();
 
         if (!list1.isEmpty()) {
             return ResponseEntity.ok(list1);
@@ -48,6 +42,6 @@ public class GetAllOrderController {
     public ResponseEntity<List<OrderDTO>> getByUser(){
         UserDetails userDetails=(UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username=userDetails.getUsername();
-        return new ResponseEntity<>(this.consutlOrderUseCaseImp.getOrderByUser(username).stream().map(OrderDTO::coreToDTO).toList(), HttpStatus.OK);
+        return new ResponseEntity<>(this.consutlOrderUseCaseImp.getOrderByUser(username).stream().map(OrderDTO::entityToDTO).toList(), HttpStatus.OK);
     }
 }

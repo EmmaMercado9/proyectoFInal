@@ -1,6 +1,5 @@
 package com.ema.practica.infrastructure.category.crud;
 
-import com.ema.practica.core.category.model.CategoryProduct;
 import com.ema.practica.infrastructure.category.entity.CategoryProductEntity;
 import com.ema.practica.infrastructure.product.entity.ProductEntity;
 import org.springframework.data.jpa.repository.Modifying;

@@ -1,11 +1,13 @@
 package com.ema.practica.infrastructure.util;
 
-import com.ema.practica.infrastructure.user.entitty.UserEntity;
-import com.ema.practica.infrastructure.user.rest.model.UserDTO;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -27,16 +29,14 @@ public class Jwt {
     }
 
     public String generateToken(UserEntity userEntity) {
-
-
         return createToken(userEntity);
     }
 
     public String createToken(UserEntity userEntity) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("idUser", userEntity.getIdUser());
-        claims.put("role", userEntity.getRole());
         claims.put("email", userEntity.getMail());
+        claims.put("name", userEntity.getName());
 
         return Jwts.builder()
                 .claims(claims) // Asigna todos los claims juntos
@@ -50,10 +50,11 @@ public class Jwt {
         return extractAllClaims(token).getSubject(); // El "subject" contiene el username o email
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-    }
+        public boolean validateToken(String token,UserDetails userDetails) {
+
+            String mail=extractUsername(token);
+            return (mail.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        }
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

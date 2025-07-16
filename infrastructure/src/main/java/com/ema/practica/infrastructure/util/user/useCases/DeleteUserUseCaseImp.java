@@ -1,8 +1,10 @@
-package com.ema.practica.infrastructure.user.useCases;
+package com.ema.practica.infrastructure.util.user.useCases;
 
-import com.ema.practica.infrastructure.user.crud.IDeleteUserCrud;
+import com.ema.practica.infrastructure.util.user.crud.IDeleteUserCrud;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class DeleteUserUseCaseImp  {
@@ -18,8 +20,8 @@ public class DeleteUserUseCaseImp  {
     }
 
 
-    public boolean deleteUser(Long userId) {
-        iDeleteUserCrud.deleteById(userId);
+    public boolean deleteUser(UUID userId) {
+        iDeleteUserCrud.deleteByIdUser(userId);
         return true;
     }
 }

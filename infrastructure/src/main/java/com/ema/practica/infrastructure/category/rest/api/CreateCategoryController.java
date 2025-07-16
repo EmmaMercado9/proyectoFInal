@@ -1,7 +1,6 @@
 package com.ema.practica.infrastructure.category.rest.api;
-
-import com.ema.practica.core.category.input.IAddCategoryInput;
 import com.ema.practica.infrastructure.category.rest.model.CategoryDTO;
+import com.ema.practica.infrastructure.category.useCases.AddCategoryUseCaseImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,15 +11,16 @@ import org.springframework.web.bind.annotation.*;
 
 public class CreateCategoryController {
 
-    IAddCategoryInput iAddCategoryInput;
+
+    private final AddCategoryUseCaseImp addCategoryUseCaseImp;
     @Autowired
-    public CreateCategoryController(IAddCategoryInput iAddCategoryInput ){
-        this.iAddCategoryInput=iAddCategoryInput;
+    public CreateCategoryController( AddCategoryUseCaseImp addCategoryUseCaseImp ){
+        this.addCategoryUseCaseImp=addCategoryUseCaseImp;
     }
 
     @PostMapping()
     public ResponseEntity<?> addProductCart(@RequestBody CategoryDTO categoryDTO){
-        boolean result= iAddCategoryInput.addCategory(categoryDTO.dtoToCore());
+        boolean result= addCategoryUseCaseImp.save(categoryDTO.dtoToEntity());
         return  ResponseEntity.ok().body(result);
     }
 }
