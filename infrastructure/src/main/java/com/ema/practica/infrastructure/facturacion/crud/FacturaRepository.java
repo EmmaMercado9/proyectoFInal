@@ -15,7 +15,8 @@ public interface FacturaRepository extends JpaRepository<FacturaEntity, Long> {
 
     List<FacturaEntity> findByOrder_IdOrderOrderByCreadoEnAsc(Long idOrder);
 
-    boolean existsByOrder_IdOrderAndTipo(Long idOrder, TipoComprobante tipo);
+    // Por ambiente: una factura de prueba no impide facturar de verdad después
+    boolean existsByOrder_IdOrderAndTipoAndAmbiente(Long idOrder, TipoComprobante tipo, String ambiente);
 
     boolean existsByDevolucion_IdDevolucion(Long idDevolucion);
 

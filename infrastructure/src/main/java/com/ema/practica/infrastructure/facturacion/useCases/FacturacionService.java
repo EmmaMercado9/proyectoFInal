@@ -120,8 +120,10 @@ public class FacturacionService {
                     ? "La venta está cancelada: no se puede facturar"
                     : "Solo se facturan ventas completadas");
         }
-        if (facturaRepository.existsByOrder_IdOrderAndTipo(idOrder, TipoComprobante.FACTURA_C)) {
-            throw new VentaInvalidaException("La venta #" + idOrder + " ya tiene factura");
+        if (facturaRepository.existsByOrder_IdOrderAndTipoAndAmbiente(
+                idOrder, TipoComprobante.FACTURA_C, props.getAmbiente().name())) {
+            throw new VentaInvalidaException("La venta #" + idOrder + " ya tiene factura"
+                    + (props.getAmbiente() == ArcaProperties.Ambiente.HOMOLOGACION ? " de prueba" : ""));
         }
 
         // Si hubo devoluciones antes de facturar, se factura lo que efectivamente se cobró

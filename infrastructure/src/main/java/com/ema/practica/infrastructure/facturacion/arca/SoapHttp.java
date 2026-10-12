@@ -51,9 +51,25 @@ public class SoapHttp {
         Document doc = parse(respuesta);
         String fault = text(doc.getDocumentElement(), "faultstring");
         if (fault != null) {
-            throw new ArcaException("ARCA respondió con error: " + fault);
+            throw new ArcaException("ARCA respondió con error: " + fault + pista(fault));
         }
         return doc;
+    }
+
+    /** Qué hacer ante los errores más comunes de configuración en ARCA */
+    static String pista(String fault) {
+        String f = fault.toLowerCase();
+        if (f.contains("no autorizado a acceder")) {
+            return ". Falta autorizar el certificado para el servicio wsfe "
+                    + "(ARCA → WSASS → \"Crear autorización a servicio\").";
+        }
+        if (f.contains("ac de confianza")) {
+            return ". El certificado no es de ARCA o es de otro ambiente (prueba/producción).";
+        }
+        if (f.contains("ya posee un ta valido")) {
+            return ". Ya hay un ticket vigente: esperá unos minutos y reintentá.";
+        }
+        return "";
     }
 
     public static Document parse(String xml) {

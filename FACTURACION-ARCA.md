@@ -83,4 +83,7 @@ En homologación el punto de venta puede ser cualquiera (por ejemplo `1`).
 Errores típicos de ARCA:
 
 - *"Certificado no emitido por AC de confianza"*: el `.crt` no es de ARCA o es de otro ambiente.
-- *"No se encuentra autorizado a operar"*: falta autorizar el certificado para `wsfe` (paso b.3).
+- *"Computador no autorizado a acceder al servicio"*: falta autorizar el
+  certificado para `wsfe` (paso b.3). En WSASS → "Crear autorización a servicio":
+  nombre simbólico del DN = el del certificado, CUIT del DN y CUIT representada =
+  tu CUIT, servicio = `wsfe - Facturación Electrónica`.

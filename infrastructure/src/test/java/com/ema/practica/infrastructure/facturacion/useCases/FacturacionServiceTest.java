@@ -135,7 +135,8 @@ class FacturacionServiceTest {
 
     @Test
     void facturar_dosVeces_falla() {
-        when(facturaRepository.existsByOrder_IdOrderAndTipo(10L, TipoComprobante.FACTURA_C)).thenReturn(true);
+        when(facturaRepository.existsByOrder_IdOrderAndTipoAndAmbiente(10L, TipoComprobante.FACTURA_C, "HOMOLOGACION"))
+                .thenReturn(true);
 
         assertThatThrownBy(() -> service.facturar(10L, null, null))
                 .isInstanceOf(VentaInvalidaException.class)
