@@ -17,10 +17,11 @@ import java.util.UUID;
 @Repository
 public interface ProductVariantRepository
         extends JpaRepository<ProductVariantEntity, Long> {
+    // Sin filtrar por estado: el código es único y el inventario tiene que
+    // encontrar también lo desactivado (el POS no deja venderlo)
     @Query("""
     SELECT v FROM ProductVariantEntity v
     WHERE v.codigoBarra = :codigo
-    AND v.status = 'ACTIVO'
     AND v.esDefault = false
 """)
     Optional<ProductVariantEntity> findByCodigoBarra(
