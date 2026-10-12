@@ -1,6 +1,7 @@
 package com.ema.practica.infrastructure.facturacion.arca;
 
 import com.ema.practica.infrastructure.facturacion.config.ArcaProperties;
+import com.ema.practica.infrastructure.facturacion.useCases.ConfiguracionArcaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
@@ -45,7 +46,12 @@ public class WsaaClient {
     private static final String NS = "http://wsaa.view.sua.dvadac.desein.afip.gov";
     private static final ZoneId AR = ZoneId.of("America/Argentina/Buenos_Aires");
 
-    public record Ticket(String token, String sign, OffsetDateTime expiracion) {
+    // huella = certificado con el que se obtuvo: si se cambia el certificado, se pide otro ticket
+    public record Ticket(String token, String sign, OffsetDateTime expiracion, String huella) {
+        public Ticket(String token, String sign, OffsetDateTime expiracion) {
+            this(token, sign, expiracion, null);
+        }
+
         boolean vigente() {
             // margen de 10 min para no usar un ticket a punto de vencer
             return expiracion.isAfter(OffsetDateTime.now().plusMinutes(10));
@@ -53,19 +59,32 @@ public class WsaaClient {
     }
 
     private final ArcaProperties props;
+    private final ConfiguracionArcaService config;
     private final SoapHttp soap;
     private Ticket ticket;
 
     public synchronized Ticket ticket() {
-        if (ticket != null && ticket.vigente()) return ticket;
+        String huella = huellaCertificado();
+        if (ticket != null && ticket.vigente() && huella.equals(ticket.huella())) return ticket;
         Ticket guardado = leerCache();
-        if (guardado != null && guardado.vigente()) {
+        if (guardado != null && guardado.vigente() && huella.equals(guardado.huella())) {
             ticket = guardado;
             return ticket;
         }
-        ticket = solicitar();
+        Ticket nuevo = solicitar();
+        ticket = new Ticket(nuevo.token(), nuevo.sign(), nuevo.expiracion(), huella);
         guardarCache(ticket);
         return ticket;
+    }
+
+    private String huellaCertificado() {
+        try {
+            byte[] crt = Files.readAllBytes(config.certFile());
+            return Base64.getEncoder().encodeToString(
+                    java.security.MessageDigest.getInstance("SHA-256").digest(crt));
+        } catch (Exception e) {
+            throw new ArcaException("No hay certificado de ARCA instalado (Configuración → Facturación)");
+        }
     }
 
     private Ticket solicitar() {
@@ -101,8 +120,8 @@ public class WsaaClient {
     /** Firma el TRA como CMS (PKCS#7 SignedData con el contenido incluido) en Base64 */
     String firmar(String tra) {
         try {
-            X509Certificate cert = leerCertificado(Path.of(props.getCertPath()));
-            PrivateKey key = leerClave(Path.of(props.getKeyPath()));
+            X509Certificate cert = leerCertificado(config.certFile());
+            PrivateKey key = leerClave(config.keyFile());
             CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
             gen.addSignerInfoGenerator(new JcaSimpleSignerInfoGeneratorBuilder()
                     .build("SHA256withRSA", key, cert));
@@ -141,8 +160,8 @@ public class WsaaClient {
     // ── Caché en disco del ticket ─────────────────────────────────────────────
 
     private Path cacheFile() {
-        return Path.of(props.getTaCacheDir(),
-                "ta-" + props.getCuit() + "-" + props.getAmbiente().name().toLowerCase() + ".properties");
+        return Path.of(props.getDirectorio(),
+                "ta-" + config.emisor().cuit() + "-" + props.getAmbiente().name().toLowerCase() + ".properties");
     }
 
     private Ticket leerCache() {
@@ -154,7 +173,7 @@ public class WsaaClient {
                 p.load(r);
             }
             return new Ticket(p.getProperty("token"), p.getProperty("sign"),
-                    OffsetDateTime.parse(p.getProperty("expiracion")));
+                    OffsetDateTime.parse(p.getProperty("expiracion")), p.getProperty("huella"));
         } catch (Exception e) {
             log.warn("No se pudo leer el ticket de ARCA guardado: {}", e.getMessage());
             return null;
@@ -169,6 +188,7 @@ public class WsaaClient {
             p.setProperty("token", t.token());
             p.setProperty("sign", t.sign());
             p.setProperty("expiracion", t.expiracion().toString());
+            if (t.huella() != null) p.setProperty("huella", t.huella());
             try (var w = Files.newBufferedWriter(f)) {
                 p.store(w, "Ticket de acceso ARCA (WSAA) - no compartir");
             }

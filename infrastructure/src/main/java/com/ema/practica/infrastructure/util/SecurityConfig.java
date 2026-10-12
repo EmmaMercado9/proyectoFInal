@@ -59,7 +59,8 @@ public class SecurityConfig {
                         // ── Devoluciones y cambios: ambos roles
                         .requestMatchers("/api/admin/devoluciones/**").hasAnyRole(ADMIN, COLABORADOR)
                         // ── Facturación ARCA: ambos facturan; probar conexión solo ADMIN
-                        .requestMatchers("/api/admin/facturacion/probar").hasRole(ADMIN)
+                        .requestMatchers("/api/admin/facturacion/probar", "/api/admin/facturacion/config",
+                                "/api/admin/facturacion/csr", "/api/admin/facturacion/certificado").hasRole(ADMIN)
                         .requestMatchers("/api/admin/facturacion/**", "/api/admin/facturas/**").hasAnyRole(ADMIN, COLABORADOR)
                         .requestMatchers("/api/orders/**").hasAnyRole(ADMIN, COLABORADOR)
 

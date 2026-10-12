@@ -1,6 +1,7 @@
 package com.ema.practica.infrastructure.facturacion.arca;
 
 import com.ema.practica.infrastructure.facturacion.config.ArcaProperties;
+import com.ema.practica.infrastructure.facturacion.useCases.ConfiguracionArcaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -28,6 +29,7 @@ public class WsfeClient {
     static final DateTimeFormatter YYYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final ArcaProperties props;
+    private final ConfiguracionArcaService config;
     private final WsaaClient wsaa;
     private final SoapHttp soap;
 
@@ -123,7 +125,7 @@ public class WsfeClient {
     private String auth() {
         WsaaClient.Ticket t = wsaa.ticket();
         return "<Auth><Token>" + SoapHttp.esc(t.token()) + "</Token><Sign>" + SoapHttp.esc(t.sign())
-                + "</Sign><Cuit>" + props.getCuit() + "</Cuit></Auth>";
+                + "</Sign><Cuit>" + config.emisor().cuit() + "</Cuit></Auth>";
     }
 
     private static List<String> mensajes(Document doc, String tag) {

@@ -47,6 +47,7 @@ class FacturacionServiceTest {
     @Mock FacturaRepository facturaRepository;
     @Mock OrderRepository orderRepository;
     @Mock DevolucionRepository devolucionRepository;
+    @Mock ConfiguracionArcaService config;
 
     ArcaProperties props = new ArcaProperties();
     FacturacionService service;
@@ -54,13 +55,11 @@ class FacturacionServiceTest {
 
     @BeforeEach
     void setUp() {
-        props.setEnabled(true);
-        props.setCuit(20111111112L);
-        props.setPuntoVenta(3);
-        props.setCertPath("cert.crt");
-        props.setKeyPath("clave.key");
-        props.setRazonSocial("Tienda Test");
-        service = new FacturacionService(props, wsfe, facturaRepository, orderRepository,
+        lenient().when(config.emisor()).thenReturn(new ConfiguracionArcaService.Emisor(
+                true, 20111111112L, 3, "Tienda Test", "Calle 1", null, null, "Responsable Monotributo"));
+        lenient().when(config.faltantes()).thenAnswer(inv -> props.produccionBloqueada()
+                ? List.of("Producción bloqueada en el servidor (ARCA_PERMITIR_PRODUCCION)") : List.of());
+        service = new FacturacionService(props, config, wsfe, facturaRepository, orderRepository,
                 devolucionRepository, new ObjectMapper());
 
         ProductEntity p = new ProductEntity();
@@ -145,11 +144,24 @@ class FacturacionServiceTest {
 
     @Test
     void facturar_sinConfigurar_dicequeFalta() {
-        props.setCertPath(null);
+        when(config.faltantes()).thenReturn(List.of("Subir el certificado que entrega ARCA"));
 
         assertThatThrownBy(() -> service.facturar(10L, null, null))
                 .isInstanceOf(VentaInvalidaException.class)
-                .hasMessageContaining("ARCA_CERT_PATH");
+                .hasMessageContaining("Subir el certificado");
+    }
+
+    @Test
+    void facturar_guardaCopiaDelEmisor() {
+        when(wsfe.ultimoAutorizado(3, 11)).thenReturn(0L);
+        arcaAprueba();
+
+        var dto = service.facturar(10L, null, null);
+
+        // Si después cambian los datos del negocio, la factura conserva estos
+        assertThat(dto.getEmisor().getRazonSocial()).isEqualTo("Tienda Test");
+        assertThat(dto.getEmisor().getCuit()).isEqualTo(20111111112L);
+        assertThat(dto.getQrUrl()).isNotNull();
     }
 
     @Test
@@ -292,6 +304,7 @@ class FacturacionServiceTest {
         f.setDocTipo(96);
         f.setDocNro(30123456L);
         f.setCae("76123456789012");
+        f.setEmisorCuit(20111111112L);
 
         String url = service.qrUrl(f);
 

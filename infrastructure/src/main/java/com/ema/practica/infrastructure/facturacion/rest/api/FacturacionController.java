@@ -1,6 +1,8 @@
 package com.ema.practica.infrastructure.facturacion.rest.api;
 
+import com.ema.practica.infrastructure.facturacion.rest.model.ConfiguracionFacturacionDTO;
 import com.ema.practica.infrastructure.facturacion.rest.model.EstadoFacturacionDTO;
+import com.ema.practica.infrastructure.facturacion.useCases.ConfiguracionArcaService;
 import com.ema.practica.infrastructure.facturacion.rest.model.FacturaResponseDTO;
 import com.ema.practica.infrastructure.facturacion.rest.model.FacturarRequestDTO;
 import com.ema.practica.infrastructure.facturacion.rest.model.NotaCreditoRequestDTO;
@@ -14,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 // Facturación electrónica ARCA. Permisos en SecurityConfig.
 @RestController
@@ -22,6 +25,38 @@ import java.util.List;
 public class FacturacionController {
 
     private final FacturacionService facturacionService;
+    private final ConfiguracionArcaService configuracion;
+
+    // ── Configuración (solo ADMIN, ver SecurityConfig) ──────────────────────
+
+    @GetMapping("/facturacion/config")
+    public ResponseEntity<ConfiguracionFacturacionDTO> config() {
+        return ResponseEntity.ok(configuracion.dto());
+    }
+
+    @PutMapping("/facturacion/config")
+    public ResponseEntity<ConfiguracionFacturacionDTO> guardarConfig(
+            @RequestBody ConfiguracionFacturacionDTO dto,
+            @AuthenticationPrincipal SecurityUser user) {
+        return ResponseEntity.ok(configuracion.guardar(dto, user != null ? user.getUserEntity().getName() : null));
+    }
+
+    // Genera clave (queda en el servidor) + CSR para subir a ARCA
+    @PostMapping(value = "/facturacion/csr", produces = "text/plain")
+    public ResponseEntity<String> generarCsr(@RequestParam(defaultValue = "false") boolean reemplazar) {
+        return ResponseEntity.ok(configuracion.generarCsr(reemplazar));
+    }
+
+    @GetMapping(value = "/facturacion/csr", produces = "text/plain")
+    public ResponseEntity<String> csr() {
+        return ResponseEntity.ok(configuracion.csrActual());
+    }
+
+    // Body: { "pem": "-----BEGIN CERTIFICATE-----..." }
+    @PostMapping("/facturacion/certificado")
+    public ResponseEntity<ConfiguracionFacturacionDTO> certificado(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(configuracion.instalarCertificado(body.getOrDefault("pem", "")));
+    }
 
     // Si está configurada (para mostrar u ocultar el botón "Facturar")
     @GetMapping("/facturacion/estado")

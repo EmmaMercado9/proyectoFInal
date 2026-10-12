@@ -1,6 +1,7 @@
 package com.ema.practica.infrastructure.facturacion.arca;
 
 import com.ema.practica.infrastructure.facturacion.config.ArcaProperties;
+import com.ema.practica.infrastructure.facturacion.useCases.ConfiguracionArcaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,13 +20,15 @@ class WsfeClientTest {
 
     @Mock WsaaClient wsaa;
     @Mock SoapHttp soap;
+    @Mock ConfiguracionArcaService config;
     ArcaProperties props = new ArcaProperties();
     WsfeClient client;
 
     @BeforeEach
     void setUp() {
-        props.setCuit(20111111112L);
-        client = new WsfeClient(props, wsaa, soap);
+        org.mockito.Mockito.lenient().when(config.emisor()).thenReturn(new ConfiguracionArcaService.Emisor(
+                true, 20111111112L, 3, "Test", null, null, null, "Responsable Monotributo"));
+        client = new WsfeClient(props, config, wsaa, soap);
     }
 
     @Test

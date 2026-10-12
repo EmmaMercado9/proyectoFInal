@@ -88,6 +88,26 @@ public class FacturaEntity {
     @JoinColumn(name = "id_user")
     private UserEntity usuario;
 
+    // Copia de los datos del emisor al momento de emitir: si después cambian
+    // (domicilio, razón social...) la factura se sigue imprimiendo como salió
+    @Column(name = "emisor_cuit")
+    private Long emisorCuit;
+
+    @Column(name = "emisor_razon_social")
+    private String emisorRazonSocial;
+
+    @Column(name = "emisor_domicilio")
+    private String emisorDomicilio;
+
+    @Column(name = "emisor_iibb", length = 30)
+    private String emisorIibb;
+
+    @Column(name = "emisor_inicio_actividades", length = 10)
+    private String emisorInicioActividades;
+
+    @Column(name = "emisor_condicion_iva", length = 60)
+    private String emisorCondicionIva;
+
     @Column(name = "creado_en", nullable = false)
     private LocalDateTime creadoEn = LocalDateTime.now();
 

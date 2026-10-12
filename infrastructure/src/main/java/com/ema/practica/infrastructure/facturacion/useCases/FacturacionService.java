@@ -64,6 +64,7 @@ public class FacturacionService {
             16, "Monotributo Trabajador Independiente Promovido");
 
     private final ArcaProperties props;
+    private final ConfiguracionArcaService config;
     private final WsfeClient wsfe;
     private final FacturaRepository facturaRepository;
     private final OrderRepository orderRepository;
@@ -76,13 +77,14 @@ public class FacturacionService {
 
     public EstadoFacturacionDTO estado() {
         EstadoFacturacionDTO dto = new EstadoFacturacionDTO();
-        List<String> faltantes = props.faltantes();
+        List<String> faltantes = config.faltantes();
+        ConfiguracionArcaService.Emisor emisor = config.emisor();
         dto.setHabilitada(faltantes.isEmpty());
         dto.setFaltantes(faltantes);
         dto.setAmbiente(props.getAmbiente().name());
-        dto.setCuit(props.getCuit());
-        dto.setPuntoVenta(props.getPuntoVenta());
-        dto.setRazonSocial(props.getRazonSocial());
+        dto.setCuit(emisor.cuit());
+        dto.setPuntoVenta(emisor.puntoVenta());
+        dto.setRazonSocial(emisor.razonSocial());
         return dto;
     }
 
@@ -96,11 +98,11 @@ public class FacturacionService {
         }
         dto.setServidores(wsfe.dummy());
         if (dto.isHabilitada()) {
-            long ultimo = wsfe.ultimoAutorizado(props.getPuntoVenta(), TipoComprobante.FACTURA_C.getCodigo());
+            long ultimo = wsfe.ultimoAutorizado(dto.getPuntoVenta(), TipoComprobante.FACTURA_C.getCodigo());
             dto.setMensaje("Certificado OK. Última Factura C autorizada en el punto de venta "
-                    + props.getPuntoVenta() + ": " + ultimo);
+                    + dto.getPuntoVenta() + ": " + ultimo);
         } else {
-            dto.setMensaje("Servidores de ARCA accesibles. Falta configurar: " + String.join(", ", dto.getFaltantes()));
+            dto.setMensaje("Servidores de ARCA accesibles. Falta: " + String.join(" · ", dto.getFaltantes()));
         }
         return dto;
     }
@@ -204,14 +206,16 @@ public class FacturacionService {
 
     private FacturaEntity autorizar(TipoComprobante tipo, OrderEntity order, BigDecimal importe,
                                     Receptor receptor, FacturaEntity asociada, UserEntity usuario) {
-        int ptoVta = props.getPuntoVenta();
+        ConfiguracionArcaService.Emisor emisor = config.emisor();
+        int ptoVta = emisor.puntoVenta();
         LocalDate hoy = LocalDate.now(AR);
         numeracion.lock();
         try {
             long numero = wsfe.ultimoAutorizado(ptoVta, tipo.getCodigo()) + 1;
             WsfeClient.CbteAsociado asoc = asociada == null ? null : new WsfeClient.CbteAsociado(
                     asociada.getTipo().getCodigo(), asociada.getPuntoVenta(), asociada.getNumero(),
-                    props.getCuit(), asociada.getFecha());
+                    asociada.getEmisorCuit() != null ? asociada.getEmisorCuit() : emisor.cuit(),
+                    asociada.getFecha());
 
             WsfeClient.ResultadoCae res = wsfe.solicitarCae(new WsfeClient.SolicitudCae(
                     tipo.getCodigo(), ptoVta, numero, hoy, receptor.docTipo(), receptor.docNro(),
@@ -240,6 +244,12 @@ public class FacturacionService {
             f.setFacturaAsociada(asociada);
             f.setUsuario(usuario);
             f.setCreadoEn(LocalDateTime.now());
+            f.setEmisorCuit(emisor.cuit());
+            f.setEmisorRazonSocial(emisor.razonSocial());
+            f.setEmisorDomicilio(emisor.domicilio());
+            f.setEmisorIibb(emisor.iibb());
+            f.setEmisorInicioActividades(emisor.inicioActividades());
+            f.setEmisorCondicionIva(emisor.condicionIva());
             return facturaRepository.save(f);
         } finally {
             numeracion.unlock();
@@ -317,10 +327,10 @@ public class FacturacionService {
     }
 
     private void exigirConfiguracion() {
-        List<String> faltantes = props.faltantes();
+        List<String> faltantes = config.faltantes();
         if (!faltantes.isEmpty()) {
             throw new VentaInvalidaException(
-                    "La facturación electrónica no está configurada. Falta: " + String.join(", ", faltantes));
+                    "La facturación electrónica no está lista. Falta: " + String.join(" · ", faltantes));
         }
     }
 
@@ -365,13 +375,14 @@ public class FacturacionService {
             dto.setSaldoAnulable(saldoAnulable(f));
         }
 
+        // Datos del emisor tal como estaban al emitir
         FacturaResponseDTO.Emisor e = new FacturaResponseDTO.Emisor();
-        e.setCuit(props.getCuit());
-        e.setRazonSocial(props.getRazonSocial());
-        e.setDomicilio(props.getDomicilio());
-        e.setIibb(props.getIibb());
-        e.setInicioActividades(props.getInicioActividades());
-        e.setCondicionIva(props.getCondicionIva());
+        e.setCuit(f.getEmisorCuit());
+        e.setRazonSocial(f.getEmisorRazonSocial());
+        e.setDomicilio(f.getEmisorDomicilio());
+        e.setIibb(f.getEmisorIibb());
+        e.setInicioActividades(f.getEmisorInicioActividades());
+        e.setCondicionIva(f.getEmisorCondicionIva());
         dto.setEmisor(e);
 
         dto.setItems(items(f));
@@ -423,7 +434,7 @@ public class FacturacionService {
             Map<String, Object> d = new LinkedHashMap<>();
             d.put("ver", 1);
             d.put("fecha", f.getFecha().toString());
-            d.put("cuit", props.getCuit());
+            d.put("cuit", f.getEmisorCuit());
             d.put("ptoVta", f.getPuntoVenta());
             d.put("tipoCmp", f.getTipo().getCodigo());
             d.put("nroCmp", f.getNumero());
