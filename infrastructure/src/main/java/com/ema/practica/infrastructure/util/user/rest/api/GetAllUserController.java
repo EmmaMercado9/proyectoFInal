@@ -1,5 +1,5 @@
 package com.ema.practica.infrastructure.util.user.rest.api;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
 import com.ema.practica.infrastructure.util.user.rest.model.UserDTO;
 import com.ema.practica.infrastructure.util.user.rest.model.UserDtoAdmin;
 import com.ema.practica.infrastructure.util.user.useCases.ListUserUseCaseImp;
@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.List;
 @RestController
 @RequestMapping("/getUser")
-@CrossOrigin("*")
 
 public class GetAllUserController {
 
@@ -25,13 +24,10 @@ public class GetAllUserController {
 
     @GetMapping("/all")
 
-    public ResponseEntity<List<UserDtoAdmin>> GetAllUsers(){
-        Collection<UserEntity> list=listUserUseCaseImp.getAll();
-
-        List<UserDtoAdmin> list1=list.stream().map(UserDtoAdmin::EntityToUserAdmin).toList();
-
-        if (!list1.isEmpty()) {
-            return ResponseEntity.ok(list1);
+    public ResponseEntity<Collection<UserDtoAdmin>> GetAllUsers(){
+        Collection<UserDtoAdmin> list=listUserUseCaseImp.getAll();
+        if (!list.isEmpty()) {
+            return ResponseEntity.ok(list);
         } else {
             return ResponseEntity.noContent().build();
         }

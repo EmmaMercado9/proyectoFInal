@@ -1,7 +1,9 @@
 package com.ema.practica.infrastructure.util.user.useCases;
 
+import com.ema.practica.infrastructure.exception.RecursoNoEncontradoException;
 import com.ema.practica.infrastructure.util.user.crud.IListUserCrud;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
+import com.ema.practica.infrastructure.util.user.rest.model.UserDtoAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Collection;
@@ -15,14 +17,14 @@ public class ListUserUseCaseImp  {
        this.iListUserCrud = iListUserCrud;
    }
 
-    public Collection<UserEntity> getAll() {
+    public Collection<UserDtoAdmin> getAll() {
         Iterable<UserEntity>  userEntities = iListUserCrud.findAll();
-        return StreamSupport.stream(userEntities.spliterator(),false).collect(Collectors.toList());    }
+        return StreamSupport.stream(userEntities.spliterator(),false).map(UserDtoAdmin::EntityToUserAdmin).collect(Collectors.toList());    }
 
     public UserEntity getUserById(String username){
        UserEntity userEntity=this.iListUserCrud.findByMail(username);
        if(userEntity==null) {
-        throw new RuntimeException("User no encontrado");
+        throw new RecursoNoEncontradoException("Usuario no encontrado");
        }
        return userEntity;
     }

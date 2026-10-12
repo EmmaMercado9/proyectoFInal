@@ -1,13 +1,11 @@
 package com.ema.practica.infrastructure.util;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.security.core.Authentication;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -19,13 +17,18 @@ import java.util.Map;
 
 @Component
 public class Jwt {
-    private static final String SECRET_KEY = "K9B5jhdShb1aBjYD3g9F6KzLtXQ7Lm2S9Afhz59Yow4=";
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 ; // 1 hora de expiración
+    private final SecretKey signInKey;
+    private final long expirationMs;
 
-    // Generar una clave secreta segura
+    // El secreto viene de la variable de entorno JWT_SECRET (Base64, mínimo 32 bytes)
+    public Jwt(@Value("${jwt.secret}") String secret,
+               @Value("${jwt.expiration-ms:3600000}") long expirationMs) {
+        this.signInKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        this.expirationMs = expirationMs;
+    }
+
     public SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signInKey;
     }
 
     public String generateToken(UserEntity userEntity) {
@@ -42,7 +45,7 @@ public class Jwt {
                 .claims(claims) // Asigna todos los claims juntos
                 .subject(userEntity.getMail()) // Usamos el email como subject
                 .issuedAt(new Date(System.currentTimeMillis())) // Fecha de emisión
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Fecha de expiración
+                .expiration(new Date(System.currentTimeMillis() + expirationMs)) // Fecha de expiración
                 .signWith(getSignInKey()) // Llave para firmar el token
                 .compact();
     }

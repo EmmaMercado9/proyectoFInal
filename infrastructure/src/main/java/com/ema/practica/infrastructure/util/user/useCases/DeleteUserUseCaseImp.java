@@ -21,7 +21,12 @@ public class DeleteUserUseCaseImp  {
 
 
     public boolean deleteUser(UUID userId) {
-        iDeleteUserCrud.deleteByIdUser(userId);
-        return true;
+        if(iDeleteUserCrud.existsByIdUser(userId)){
+            iDeleteUserCrud.deleteByIdUser(userId);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }

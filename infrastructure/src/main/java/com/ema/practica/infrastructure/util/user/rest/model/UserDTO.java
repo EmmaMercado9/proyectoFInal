@@ -2,7 +2,7 @@ package com.ema.practica.infrastructure.util.user.rest.model;
 
 import com.ema.practica.infrastructure.util.rol.Rol;
 import com.ema.practica.infrastructure.util.status.StatusEntity;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -39,7 +39,7 @@ public class UserDTO {
                 user.getRol().name(),
                 user.getName(),
                 user.getMail(),
-                user.getPassword(),
+                null, // nunca exponer el hash
                 user.getStatus().name()
 
         );

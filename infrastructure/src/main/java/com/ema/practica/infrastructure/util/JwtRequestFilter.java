@@ -1,6 +1,8 @@
 package com.ema.practica.infrastructure.util;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
     private final Jwt jwtUtils;
@@ -34,7 +37,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        List<String> publicPaths = List.of("/loggin", "/usersAdd", "/getAllProducts", "/productsAdd/", "/AddCategory","/getProductById/","/by-ids");
+        List<String> publicPaths = List.of("/login","/loggin","/api/auth/validate");
 
         if (publicPaths.stream().anyMatch(path::startsWith)) {
 
@@ -51,7 +54,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-
                     if (jwtUtils.validateToken(jwt, userDetails)) { // Valida el token
                         UsernamePasswordAuthenticationToken authToken =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -59,19 +61,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     }
                     else{
-                        System.out.println("Token no válido");
+                        log.debug("Token no válido para {}", username);
                     }
-                    filterChain.doFilter(request, response);
 
                 }
             }catch(ExpiredJwtException expiredJwtException){
-                System.out.println("Token expirado");
+                log.debug("Token expirado");
+            }catch(JwtException | IllegalArgumentException e){
+                // Token mal formado o firma inválida: se sigue sin autenticar (→ 401/403)
+                log.debug("Token inválido: {}", e.getMessage());
             }
         }
-        else{
-            System.out.println("Sin autorizacion");
-        }
 
+        filterChain.doFilter(request, response);
 
     }
 

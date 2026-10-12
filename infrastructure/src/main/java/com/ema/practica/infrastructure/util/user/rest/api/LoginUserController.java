@@ -1,8 +1,8 @@
 package com.ema.practica.infrastructure.util.user.rest.api;
 
 import com.ema.practica.infrastructure.util.user.crud.ILoginUserCrud;
-import com.ema.practica.infrastructure.util.user.entitty.SecurityUser;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.SecurityUser;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
 import com.ema.practica.infrastructure.util.user.rest.model.RequestLogin;
 import com.ema.practica.infrastructure.util.user.rest.model.UserDTO;
 import com.ema.practica.infrastructure.util.Jwt;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
 import java.util.Collections;
 @RestController
-@RequestMapping("/loggin")
-@CrossOrigin("*")
+// "/loggin" se mantiene como alias para clientes viejos; usar "/login"
+@RequestMapping({"/login", "/loggin"})
 public class LoginUserController {
     private final AuthenticationManager authenticationManager;
     private final Jwt jwtUtil;
@@ -36,11 +36,10 @@ public class LoginUserController {
                     new UsernamePasswordAuthenticationToken(requestLogin.getEmail(), requestLogin.getPassword())
             );
             SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
-            UserEntity userEntity = securityUser.getUserEntity();
-            if (!loginUserUseCaseImp.loginValidateStatus(userEntity)) {
+            if (!loginUserUseCaseImp.loginValidateStatus(securityUser.getUserEntity().getStatus())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid user se encuentra inactivo");
             }
-            String token = jwtUtil.generateToken(userEntity);
+            String token = jwtUtil.generateToken(securityUser.getUserEntity());
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");

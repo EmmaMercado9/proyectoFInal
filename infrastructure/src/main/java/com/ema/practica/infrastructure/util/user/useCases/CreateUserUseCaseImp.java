@@ -1,7 +1,8 @@
 package com.ema.practica.infrastructure.util.user.useCases;
 
 import com.ema.practica.infrastructure.util.user.crud.ICreateUserCrud;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
+import com.ema.practica.infrastructure.util.user.rest.model.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +22,9 @@ public class CreateUserUseCaseImp  {
 
 
 
-    public boolean SaveUser(UserEntity userEntity) {
-
+    public boolean SaveUser(UserDTO userDTO,String username) {
+        UserEntity userEntity=userDTO.dtoToEntity();
+        userEntity.setCreatedBy(username);
         return (iCreateUserCrud.save(userEntity)).getIdUser()!=null;
     }
 }

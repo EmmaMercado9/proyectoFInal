@@ -1,6 +1,6 @@
 package com.ema.practica.infrastructure.util.user.crud;
 
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,5 +10,6 @@ import java.util.UUID;
 public interface IListUserCrud extends CrudRepository<UserEntity, UUID> {
 
     UserEntity findByMail(String email);
+
 
 }

@@ -1,8 +1,8 @@
 package com.ema.practica.infrastructure.util.servicesDetailUser;
 
 import com.ema.practica.infrastructure.util.user.crud.ILoginUserCrud;
-import com.ema.practica.infrastructure.util.user.entitty.SecurityUser;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.SecurityUser;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

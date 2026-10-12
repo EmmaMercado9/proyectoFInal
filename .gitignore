@@ -1,0 +1,17 @@
+# Build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Secretos locales
+application-local.properties
+.env
+
+# SO
+.DS_Store
+Thumbs.db
+backups/

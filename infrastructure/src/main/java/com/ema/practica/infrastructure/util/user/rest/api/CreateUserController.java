@@ -5,6 +5,8 @@ import com.ema.practica.infrastructure.util.user.useCases.CreateUserUseCaseImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +16,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/usersAdd")
-@CrossOrigin("*")
 
 public class CreateUserController {
 
@@ -29,6 +30,8 @@ public class CreateUserController {
     @PostMapping()
     public ResponseEntity<?> createUser(@RequestBody UserDTO user) {
 
+        String username=SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("El username es  " +username);
         if (createUserUseCaseImp.UserExist(user.getMail())) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "error");
@@ -38,7 +41,7 @@ public class CreateUserController {
 
         // Mejor inyectar este encoder, no crear uno nuevo aquí
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        boolean result = createUserUseCaseImp.SaveUser(user.dtoToEntity());
+        boolean result = createUserUseCaseImp.SaveUser(user,username);
 
         if (result) {
             Map<String, Object> response = new HashMap<>();

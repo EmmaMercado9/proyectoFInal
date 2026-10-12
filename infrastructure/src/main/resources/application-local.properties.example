@@ -1,0 +1,8 @@
+# Copiar como application-local.properties y completar
+DB_USERNAME=root
+DB_PASSWORD=
+JWT_SECRET=
+
+# Usuarios de prueba (solo desarrollo local)
+#   ADMIN       admin@gmail.com / admin123 (lo crea DataInitializer)
+#   COLABORADOR colaborador@test.com / Colab2026! (creado a mano desde Usuarios)

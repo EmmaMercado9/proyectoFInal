@@ -2,7 +2,8 @@ package com.ema.practica.infrastructure.util.user.useCases;
 
 import com.ema.practica.infrastructure.util.status.StatusEntity;
 import com.ema.practica.infrastructure.util.user.crud.ILoginUserCrud;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
+import com.ema.practica.infrastructure.util.user.rest.model.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +19,8 @@ public class LoginUserUseCaseImp {
 
 
 
-    public boolean loginValidateStatus(UserEntity userEntity){
-        return userEntity.getStatus() == StatusEntity.ACTIVO;
+    public boolean loginValidateStatus(StatusEntity statusEntity){
+        return statusEntity==StatusEntity.ACTIVO;
 
     }
 }

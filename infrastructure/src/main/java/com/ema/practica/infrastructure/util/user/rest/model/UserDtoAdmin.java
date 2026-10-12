@@ -2,7 +2,7 @@ package com.ema.practica.infrastructure.util.user.rest.model;
 
 import com.ema.practica.infrastructure.util.rol.Rol;
 import com.ema.practica.infrastructure.util.status.StatusEntity;
-import com.ema.practica.infrastructure.util.user.entitty.UserEntity;
+import com.ema.practica.infrastructure.util.user.entity.UserEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -30,7 +30,7 @@ public class UserDtoAdmin {
     private String lastModifiedBy;
     private LocalDateTime lastModifiedDate;
     public static  UserDtoAdmin  EntityToUserAdmin(UserEntity userEntity){
-        return new UserDtoAdmin(userEntity.getIdUser(),userEntity.getRol().name(), userEntity.getName(), userEntity.getMail(),userEntity.getPassword(),userEntity.getStatus().name(),userEntity.getCreatedBy(),userEntity.getCreatedDate(),userEntity.getLastModifiedBy(),userEntity.getLastModifiedDate());
+        return new UserDtoAdmin(userEntity.getIdUser(),userEntity.getRol().name(), userEntity.getName(), userEntity.getMail(),null /* nunca exponer el hash */,userEntity.getStatus().name(),userEntity.getCreatedBy(),userEntity.getCreatedDate(),userEntity.getLastModifiedBy(),userEntity.getLastModifiedDate());
     }
 }
 
