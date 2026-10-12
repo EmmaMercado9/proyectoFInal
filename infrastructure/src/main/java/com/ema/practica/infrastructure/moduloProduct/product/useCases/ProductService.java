@@ -64,6 +64,12 @@ public class ProductService {
         if (dto.getSku() != null && productRepository.existsBySku(dto.getSku())) {
             throw new VentaInvalidaException("Ya existe un producto con ese SKU");
         }
+        // Con variantes el código de barras va en cada variante (identifica talle/color)
+        String codigoBarra = Boolean.TRUE.equals(dto.getTieneVariantes())
+                ? null : blankToNull(dto.getCodigoBarra());
+        if (codigoBarra != null && productRepository.findByCodigoBarra(codigoBarra).isPresent()) {
+            throw new VentaInvalidaException("Ya existe un producto con ese código de barras");
+        }
 
         SubCategoriaEntity subCategoria = null;
         if (dto.getSubCategoriaId() != null) {
@@ -73,7 +79,7 @@ public class ProductService {
 
         ProductEntity product = new ProductEntity();
         product.setNameProduct(dto.getNameProduct());
-        product.setCodigoBarra(dto.getCodigoBarra());
+        product.setCodigoBarra(codigoBarra);
         product.setSku(dto.getSku());
         product.setDescription(dto.getDescription());
         product.setMarca(dto.getMarca());
@@ -174,7 +180,9 @@ public class ProductService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto", id));
 
         String sku = blankToNull(dto.getSku());
-        String codigoBarra = blankToNull(dto.getCodigoBarra());
+        // Con variantes el producto no lleva código propio (se borra si tenía)
+        String codigoBarra = Boolean.TRUE.equals(product.getTieneVariantes())
+                ? null : blankToNull(dto.getCodigoBarra());
         if (sku != null && productRepository.existsBySkuAndIdProductNot(sku, id)) {
             throw new VentaInvalidaException("Ya existe otro producto con ese SKU");
         }

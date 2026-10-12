@@ -91,6 +91,20 @@ class ProductServiceTest {
     }
 
     @Test
+    void actualizarProducto_conVariantes_borraCodigoDeBarras() {
+        producto.setTieneVariantes(true);
+        producto.setCodigoBarra("7790000000999");
+        when(productRepository.findById(id)).thenReturn(Optional.of(producto));
+        ProductUpdateDTO dto = update("NEW");
+        dto.setCodigoBarra("7790000000999");
+
+        productService.actualizarProducto(id, dto);
+
+        // el código va en cada variante, no en el producto
+        assertThat(producto.getCodigoBarra()).isNull();
+    }
+
+    @Test
     void actualizarProducto_skuDeOtroProducto_falla() {
         when(productRepository.findById(id)).thenReturn(Optional.of(producto));
         when(productRepository.existsBySkuAndIdProductNot("DUP", id)).thenReturn(true);
