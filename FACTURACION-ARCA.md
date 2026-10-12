@@ -9,6 +9,13 @@ conectándose directo a los web services de ARCA:
 Se factura manualmente desde el comprobante de cada venta ("Facturar") y las
 notas de crédito también son manuales ("Emitir nota de crédito").
 
+> **Hoy el sistema factura solo en modo prueba (homologación).** Esos
+> comprobantes van al servidor de pruebas de ARCA, no tienen validez fiscal
+> ni se suman a tu facturación (no cuentan para la categoría del monotributo).
+> Para facturar de verdad hace falta, a propósito, `ARCA_AMBIENTE=PRODUCCION`
+> **y** `ARCA_PERMITIR_PRODUCCION=true`. Si falta cualquiera de las dos, no se
+> contacta a los servidores reales.
+
 ---
 
 ## 1. Qué tenés que hacer en ARCA (con tu clave fiscal nivel 3)
@@ -60,6 +67,7 @@ Variables de entorno (o en `application-local.properties`, que no se sube a git)
 |---|---|---|
 | `ARCA_ENABLED` | `true` | sí |
 | `ARCA_AMBIENTE` | `HOMOLOGACION` o `PRODUCCION` | (default homologación) |
+| `ARCA_PERMITIR_PRODUCCION` | `false` | solo `true` para facturar de verdad |
 | `ARCA_CUIT` | `20123456789` | sí |
 | `ARCA_PUNTO_VENTA` | `1` | sí |
 | `ARCA_CERT_PATH` | `C:/Users/vos/arca/arca-homo.crt` | sí |

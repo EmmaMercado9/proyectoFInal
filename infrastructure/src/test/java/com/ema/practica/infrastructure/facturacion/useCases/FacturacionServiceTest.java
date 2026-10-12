@@ -309,4 +309,35 @@ class FacturacionServiceTest {
         assertThat(m.get("tipoCodAut")).isEqualTo("E");
         assertThat(m.get("codAut")).isEqualTo(76123456789012L);
     }
+
+    // ── Seguro de producción ─────────────────────────────────────────────────
+
+    @Test
+    void produccionSinPermiso_noFacturaNiContactaArca() {
+        props.setAmbiente(ArcaProperties.Ambiente.PRODUCCION);
+
+        assertThatThrownBy(() -> service.facturar(10L, null, null))
+                .isInstanceOf(VentaInvalidaException.class)
+                .hasMessageContaining("ARCA_PERMITIR_PRODUCCION");
+        assertThat(service.estado().isHabilitada()).isFalse();
+        assertThat(service.probarConexion().getMensaje()).contains("bloqueado");
+        assertThatThrownBy(props::wsfeUrlEfectiva).isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(wsfe);
+    }
+
+    @Test
+    void homologacion_esElDefaultYUsaServidoresDePrueba() {
+        ArcaProperties p = new ArcaProperties();
+        assertThat(p.getAmbiente()).isEqualTo(ArcaProperties.Ambiente.HOMOLOGACION);
+        assertThat(p.wsfeUrlEfectiva()).contains("wswhomo");
+        assertThat(p.wsaaUrlEfectiva()).contains("wsaahomo");
+    }
+
+    @Test
+    void produccionConPermiso_usaServidoresReales() {
+        props.setAmbiente(ArcaProperties.Ambiente.PRODUCCION);
+        props.setPermitirProduccion(true);
+        assertThat(service.estado().isHabilitada()).isTrue();
+        assertThat(props.wsfeUrlEfectiva()).isEqualTo("https://servicios1.afip.gov.ar/wsfev1/service.asmx");
+    }
 }

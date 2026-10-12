@@ -89,6 +89,11 @@ public class FacturacionService {
     /** Verifica servidores de ARCA y, si está configurado, el certificado (pide el último número) */
     public EstadoFacturacionDTO probarConexion() {
         EstadoFacturacionDTO dto = estado();
+        if (props.produccionBloqueada()) {
+            dto.setMensaje("Ambiente PRODUCCION bloqueado: no se contacta a ARCA. "
+                    + "Usá ARCA_AMBIENTE=HOMOLOGACION para probar, o ARCA_PERMITIR_PRODUCCION=true para facturar de verdad.");
+            return dto;
+        }
         dto.setServidores(wsfe.dummy());
         if (dto.isHabilitada()) {
             long ultimo = wsfe.ultimoAutorizado(props.getPuntoVenta(), TipoComprobante.FACTURA_C.getCodigo());
