@@ -26,6 +26,13 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, msg);
     }
 
+    // ARCA rechazó el comprobante o no respondió
+    @ExceptionHandler(com.ema.practica.infrastructure.facturacion.arca.ArcaException.class)
+    public ResponseEntity<ApiError> arca(RuntimeException ex) {
+        log.warn("ARCA: {}", ex.getMessage());
+        return build(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    }
+
     @ExceptionHandler(StockInsuficienteException.class)
     public ResponseEntity<ApiError> stock(StockInsuficienteException ex) {
         return build(HttpStatus.CONFLICT, ex.getMessage());

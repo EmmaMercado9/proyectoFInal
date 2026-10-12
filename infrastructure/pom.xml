@@ -97,6 +97,12 @@
             <artifactId>cloudinary-http44</artifactId>
             <version>1.39.0</version>
         </dependency>
+        <!-- Firma CMS/PKCS#7 del ticket de acceso a ARCA (WSAA) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
 
     </dependencies>
 
