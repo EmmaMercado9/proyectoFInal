@@ -98,6 +98,12 @@ public class ProductVariantEntity {
         return this.product.getPrecioVenta();
     }
 
+    // Costo efectivo: el propio o cae al del producto
+    public BigDecimal getCostoEfectivo() {
+        if (this.costo != null) return this.costo;
+        return this.product != null ? this.product.getCosto() : null;
+    }
+
     public boolean tieneStockSuficiente(int cantidad) {
         return this.stock != null && this.stock >= cantidad;
     }

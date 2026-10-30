@@ -13,6 +13,7 @@ import com.ema.practica.infrastructure.images.ImageModel;
 import com.ema.practica.infrastructure.moduloProduct.atributos.entity.VarianteAtributoEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Comparator;
 
@@ -37,6 +38,9 @@ public class OrderMapper {
         dto.setStatus(order.getStatus().name());
         dto.setSubtotal(order.getSubtotal());
         dto.setDiscount(order.getDiscount());
+        dto.setCuotas(order.getCuotasSeguras());
+        dto.setAjustePorcentaje(order.getAjustePorcentaje() != null ? order.getAjustePorcentaje() : BigDecimal.ZERO);
+        dto.setAjusteMedioPago(order.getAjusteMedioPagoSeguro());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setAddress(order.getAddress());
         dto.setDescription(order.getDescription());

@@ -21,6 +21,9 @@ public class OrderResponseDTO {
     private String status;
     private BigDecimal subtotal;
     private BigDecimal discount;
+    private Integer cuotas;
+    private BigDecimal ajustePorcentaje;   // negativo = descuento, positivo = recargo
+    private BigDecimal ajusteMedioPago;
     private BigDecimal totalAmount;
     private String address;
     private String description;

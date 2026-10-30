@@ -13,4 +13,6 @@ public interface AtributoRepository extends JpaRepository<AtributoEntity, Long> 
 
     boolean existsByNombreIgnoreCase(String nombre);
 
+    Optional<AtributoEntity> findByNombreIgnoreCase(String nombre);
+
 }

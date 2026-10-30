@@ -68,6 +68,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasAnyRole(ADMIN, COLABORADOR)
                         .requestMatchers(HttpMethod.POST, "/api/clientes").hasAnyRole(ADMIN, COLABORADOR)
 
+                        // ── Planes de pago: el POS los lee; solo ADMIN los modifica
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/planes").hasAnyRole(ADMIN, COLABORADOR)
+                        .requestMatchers("/api/admin/pagos/**").hasRole(ADMIN)
+
+                        // ── Reportes de gestión (ganancias, costos): solo ADMIN
+                        .requestMatchers("/api/admin/reportes", "/api/admin/reportes/**").hasRole(ADMIN)
+
+                        // ── Importación de facturas de proveedores (incluye el historial, con costos): solo ADMIN
+                        .requestMatchers("/api/productos/importar-factura", "/api/productos/importar-factura/**").hasRole(ADMIN)
+
                         // ── Catálogo: lectura para ambos, escritura solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**",
                                 "/api/atributos/**", "/marca/**").hasAnyRole(ADMIN, COLABORADOR)

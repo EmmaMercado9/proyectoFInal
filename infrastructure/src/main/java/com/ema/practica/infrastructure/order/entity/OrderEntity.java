@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -85,8 +86,21 @@ public class OrderEntity {
     @Column(name = "discount", precision = 10, scale = 2)
     private BigDecimal discount = BigDecimal.ZERO;
 
+    // ── Medio de pago: descuento (efectivo) o recargo (cuotas) ───────────────
+    // Ventas anteriores a esta columna quedan en null = 1 cuota, sin ajuste
+    @Column(name = "cuotas")
+    private Integer cuotas = 1;
+
+    // Porcentaje aplicado: negativo = descuento, positivo = recargo
+    @Column(name = "ajuste_porcentaje", precision = 5, scale = 2)
+    private BigDecimal ajustePorcentaje = BigDecimal.ZERO;
+
+    // Importe resultante del porcentaje (negativo = descuento)
+    @Column(name = "ajuste_medio_pago", precision = 10, scale = 2)
+    private BigDecimal ajusteMedioPago = BigDecimal.ZERO;
+
     @Column(name = "total_amount", precision = 10, scale = 2)
-    private BigDecimal totalAmount;        // subtotal - discount
+    private BigDecimal totalAmount;        // subtotal - discount + ajusteMedioPago
 
     // Opcional: dirección de envío (para canal ONLINE)
     @Column(name = "address")
@@ -109,6 +123,20 @@ public class OrderEntity {
             throw new VentaInvalidaException(
                     "El descuento debe estar entre 0 y el subtotal (" + this.subtotal + ")");
         }
-        this.totalAmount = this.subtotal.subtract(desc);
+        BigDecimal base = this.subtotal.subtract(desc);
+
+        // El porcentaje del medio de pago se aplica después del descuento manual
+        BigDecimal pct = this.ajustePorcentaje != null ? this.ajustePorcentaje : BigDecimal.ZERO;
+        this.ajusteMedioPago = base.multiply(pct)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        this.totalAmount = base.add(this.ajusteMedioPago);
+    }
+
+    public int getCuotasSeguras() {
+        return cuotas != null && cuotas > 0 ? cuotas : 1;
+    }
+
+    public BigDecimal getAjusteMedioPagoSeguro() {
+        return ajusteMedioPago != null ? ajusteMedioPago : BigDecimal.ZERO;
     }
 }

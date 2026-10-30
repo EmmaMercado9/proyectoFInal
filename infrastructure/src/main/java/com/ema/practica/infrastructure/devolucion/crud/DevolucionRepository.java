@@ -16,6 +16,9 @@ public interface DevolucionRepository extends JpaRepository<DevolucionEntity, Lo
 
     List<DevolucionEntity> findByOrder_IdOrderOrderByFechaDesc(Long idOrder);
 
+    // Reportes: devoluciones de un conjunto de ventas
+    List<DevolucionEntity> findByOrder_IdOrderIn(java.util.Collection<Long> idsOrden);
+
     Page<DevolucionEntity> findAllByOrderByFechaDesc(Pageable pageable);
 
     // Total ya reintegrado de una venta (para cerrar centavos en la última devolución)

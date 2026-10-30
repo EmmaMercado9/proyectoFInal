@@ -215,6 +215,10 @@ public class DevolucionService {
         nueva.setPayment(dto.getPaymentDiferencia() != null
                 ? dto.getPaymentDiferencia() : original.getPayment());
         nueva.setDescription("Cambio de la venta #" + original.getIdOrder());
+        // Los productos nuevos se valoran con el mismo descuento/recargo que la venta original
+        nueva.setCuotas(original.getCuotasSeguras());
+        nueva.setAjustePorcentajeForzado(original.getAjustePorcentaje() != null
+                ? original.getAjustePorcentaje() : BigDecimal.ZERO);
         nueva.setItems(dto.getItemsNuevos());
 
         OrderResponseDTO creada = orderService.crearOrden(nueva);

@@ -13,6 +13,7 @@ import com.ema.practica.infrastructure.moduloProduct.productVariant.crud.Product
 import com.ema.practica.infrastructure.moduloProduct.productVariant.entity.ProductVariantEntity;
 import com.ema.practica.infrastructure.order.crud.OrderRepository;
 import com.ema.practica.infrastructure.order.entity.OrderEntity;
+import com.ema.practica.infrastructure.pagos.useCases.PlanPagoService;
 import com.ema.practica.infrastructure.order.enumOrder.OrderStatus;
 import com.ema.practica.infrastructure.order.mapper.OrderMapper;
 import com.ema.practica.infrastructure.order.rest.model.OrderListadoDTO;
@@ -41,6 +42,7 @@ public class OrderService {
     private final IListUserCrud userRepository;
     private final OrderMapper orderMapper;
     private final ClientRepository clientRepository;
+    private final PlanPagoService planPagoService;
 
 
     @Transactional
@@ -72,6 +74,13 @@ public class OrderService {
         order.setDescription(dto.getDescription());
         order.setDiscount(dto.getDiscount() != null
                 ? dto.getDiscount() : BigDecimal.ZERO);
+
+        // 2. Descuento o recargo del medio de pago: lo decide el servidor, no el frontend
+        int cuotas = dto.getCuotas() != null ? dto.getCuotas() : 1;
+        order.setCuotas(cuotas);
+        order.setAjustePorcentaje(dto.getAjustePorcentajeForzado() != null
+                ? dto.getAjustePorcentajeForzado()
+                : planPagoService.porcentajePara(dto.getPayment(), cuotas));
 
         // 3. Procesar cada item del carrito
         for (OrderDetailRequestDTO item : dto.getItems()) {

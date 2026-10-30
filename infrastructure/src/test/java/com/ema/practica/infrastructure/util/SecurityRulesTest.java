@@ -3,6 +3,12 @@ package com.ema.practica.infrastructure.util;
 import com.ema.practica.infrastructure.devolucion.rest.api.DevolucionController;
 import com.ema.practica.infrastructure.devolucion.useCases.DevolucionService;
 import com.ema.practica.infrastructure.images.services.ImagenService;
+import com.ema.practica.infrastructure.importacion.rest.api.ImportacionFacturaController;
+import com.ema.practica.infrastructure.importacion.useCases.ImportacionFacturaService;
+import com.ema.practica.infrastructure.pagos.rest.api.PlanPagoController;
+import com.ema.practica.infrastructure.pagos.useCases.PlanPagoService;
+import com.ema.practica.infrastructure.reportes.rest.api.ReporteController;
+import com.ema.practica.infrastructure.reportes.useCases.ReporteService;
 import com.ema.practica.infrastructure.moduloProduct.category.rest.api.CategoryController;
 import com.ema.practica.infrastructure.moduloProduct.category.useCases.CategoryService;
 import com.ema.practica.infrastructure.moduloProduct.product.rest.api.ProductController;
@@ -33,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = {
         OrderController.class, CategoryController.class, ProductController.class,
-        DevolucionController.class,
+        DevolucionController.class, ImportacionFacturaController.class, ReporteController.class, PlanPagoController.class,
         GetAllUserController.class, DeleteUserController.class})
 @Import(SecurityConfig.class)
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost:4200")
@@ -51,6 +57,9 @@ class SecurityRulesTest {
     @MockBean ProductVariantRepository variantRepository;
     @MockBean ListUserUseCaseImp listUserUseCaseImp;
     @MockBean DeleteUserUseCaseImp deleteUserUseCaseImp;
+    @MockBean ImportacionFacturaService importacionFacturaService;
+    @MockBean ReporteService reporteService;
+    @MockBean PlanPagoService planPagoService;
 
     // ── Sin login ──────────────────────────────────────────────────────────
     @Test
@@ -102,6 +111,51 @@ class SecurityRulesTest {
         mvc.perform(patch("/api/admin/orders/1/cancelar").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"motivo\":\"Cobro duplicado\"}")).andExpect(status().isOk());
         mvc.perform(patch("/api/admin/orders/1/cancelar")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "COLABORADOR")
+    void colaborador_noPuedeVerNiImportarFacturasDeProveedores() throws Exception {
+        mvc.perform(get("/api/productos/importar-factura")).andExpect(status().isForbidden());
+        mvc.perform(post("/api/productos/importar-factura/confirmar").contentType(MediaType.APPLICATION_JSON)
+                .content("{}")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "COLABORADOR")
+    void colaborador_noPuedeVerReportes() throws Exception {
+        mvc.perform(get("/api/admin/reportes")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "COLABORADOR")
+    void colaborador_veLosPlanesDePagoPeroNoLosModifica() throws Exception {
+        when(planPagoService.listar()).thenReturn(List.of());
+        mvc.perform(get("/api/pagos/planes")).andExpect(status().isOk());
+        mvc.perform(put("/api/admin/pagos/planes").contentType(MediaType.APPLICATION_JSON)
+                .content("[]")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void admin_puedeModificarLosPlanesDePago() throws Exception {
+        mvc.perform(put("/api/admin/pagos/planes").contentType(MediaType.APPLICATION_JSON)
+                .content("[{\"medio\":\"TARJETA_CREDITO\",\"cuotas\":6,\"porcentaje\":15,\"activo\":true}]"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void admin_puedeVerReportes() throws Exception {
+        mvc.perform(get("/api/admin/reportes").param("desde", "2026-10-01").param("hasta", "2026-10-30"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void admin_puedeVerElHistorialDeFacturasImportadas() throws Exception {
+        when(importacionFacturaService.listar()).thenReturn(List.of());
+        mvc.perform(get("/api/productos/importar-factura")).andExpect(status().isOk());
     }
 
     @Test

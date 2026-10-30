@@ -15,6 +15,9 @@ public interface FacturaRepository extends JpaRepository<FacturaEntity, Long> {
 
     List<FacturaEntity> findByOrder_IdOrderOrderByCreadoEnAsc(Long idOrder);
 
+    // Reportes: comprobantes emitidos en un período y ambiente
+    List<FacturaEntity> findByFechaBetweenAndAmbiente(java.time.LocalDate desde, java.time.LocalDate hasta, String ambiente);
+
     // Por ambiente: una factura de prueba no impide facturar de verdad después
     boolean existsByOrder_IdOrderAndTipoAndAmbiente(Long idOrder, TipoComprobante tipo, String ambiente);
 

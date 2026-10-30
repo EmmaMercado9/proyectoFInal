@@ -422,6 +422,13 @@ public class FacturacionService {
             items.add(new FacturaResponseDTO.Item("Descuento", BigDecimal.ONE,
                     o.getDiscount().negate(), o.getDiscount().negate()));
         }
+        BigDecimal ajusteMedio = o.getAjusteMedioPagoSeguro();
+        if (ajusteMedio.signum() != 0) {
+            String concepto = ajusteMedio.signum() < 0
+                    ? "Descuento por pago en " + o.getPayment().name().toLowerCase().replace('_', ' ')
+                    : "Recargo por pago en " + o.getCuotasSeguras() + " cuotas";
+            items.add(new FacturaResponseDTO.Item(concepto, BigDecimal.ONE, ajusteMedio, ajusteMedio));
+        }
         // Devoluciones previas a la factura: el importe facturado ya las descuenta
         BigDecimal ajuste = f.getImporteTotal().subtract(o.getTotalAmount());
         if (ajuste.signum() != 0) {

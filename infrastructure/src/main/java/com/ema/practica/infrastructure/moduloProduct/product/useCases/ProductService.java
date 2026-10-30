@@ -446,6 +446,21 @@ public class ProductService {
         variante.setStock(nuevoStock);
         return productMapper.toVarianteDTO(variante);
     }
+
+    /**
+     * Ingreso de mercadería (importación de factura de proveedor): suma unidades
+     * y actualiza el costo con el de la última compra.
+     */
+    @Transactional
+    public void sumarStockCompra(Long variantId, int cantidad, BigDecimal costo) {
+        ProductVariantEntity variante = variantRepository.findByIdForUpdate(variantId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Variante", variantId));
+        variante.setStock(variante.getStock() + cantidad);
+        if (costo != null) {
+            variante.setCosto(costo);
+            variante.setMargen(calcularMargen(variante.getPrecioEfectivo(), costo));
+        }
+    }
 }
 
 

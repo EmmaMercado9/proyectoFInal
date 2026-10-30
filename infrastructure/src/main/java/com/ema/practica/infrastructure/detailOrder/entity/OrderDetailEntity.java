@@ -43,6 +43,11 @@ public class OrderDetailEntity {
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 
+    // Costo congelado al momento de la venta (para calcular la ganancia real).
+    // Las ventas anteriores a esta columna lo tienen en null: los reportes usan el costo actual.
+    @Column(name = "costo_unitario", precision = 10, scale = 2)
+    private BigDecimal costoUnitario;
+
     // Unidades de este ítem que ya se devolvieron (devoluciones o cambios)
     @Column(name = "cantidad_devuelta", nullable = false, columnDefinition = "int default 0")
     private Integer cantidadDevuelta = 0;
@@ -51,7 +56,6 @@ public class OrderDetailEntity {
         return cantidadDevuelta != null ? cantidadDevuelta : 0;
     }
 
-    /** Unidades que todavía se pueden devolver */
     public int getCantidadDevolvible() {
         return quantity - getCantidadDevueltaSegura();
     }
@@ -64,5 +68,6 @@ public class OrderDetailEntity {
         this.quantity  = quantity;
         this.priceUnit = priceUnit;
         this.subtotal  = priceUnit.multiply(BigDecimal.valueOf(quantity));
+        this.costoUnitario = variant != null ? variant.getCostoEfectivo() : null;
     }
 }

@@ -16,6 +16,7 @@ import com.ema.practica.infrastructure.order.enumOrder.OrderStatus;
 import com.ema.practica.infrastructure.order.enumOrder.PaymentMethod;
 import com.ema.practica.infrastructure.order.mapper.OrderMapper;
 import com.ema.practica.infrastructure.order.rest.model.OrderRequestDTO;
+import com.ema.practica.infrastructure.pagos.useCases.PlanPagoService;
 import com.ema.practica.infrastructure.util.user.crud.IListUserCrud;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ class OrderServiceTest {
     @Mock IListUserCrud userRepository;
     @Mock OrderMapper orderMapper;
     @Mock ClientRepository clientRepository;
+    @Mock PlanPagoService planPagoService;
 
     @InjectMocks OrderService orderService;
 
@@ -88,6 +90,42 @@ class OrderServiceTest {
         assertThat(orden.getTotalAmount()).isEqualByComparingTo("250.00");
         assertThat(orden.getStatus()).isEqualTo(OrderStatus.COMPLETADA);
         assertThat(orden.getUser()).isNull(); // venta de mostrador sin usuario
+    }
+
+    @Test
+    void crearOrden_efectivo_aplicaDescuentoDespuesDelDescuentoManual() {
+        when(variantRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(variante));
+        when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planPagoService.porcentajePara(PaymentMethod.EFECTIVO, 1)).thenReturn(new BigDecimal("-10.00"));
+
+        OrderRequestDTO dto = request(3, "50");
+        dto.setPayment(PaymentMethod.EFECTIVO);
+        orderService.crearOrden(dto);
+
+        ArgumentCaptor<OrderEntity> captor = ArgumentCaptor.forClass(OrderEntity.class);
+        verify(orderRepository).save(captor.capture());
+        OrderEntity orden = captor.getValue();
+
+        // (300 − 50) × −10 % = −25
+        assertThat(orden.getAjusteMedioPago()).isEqualByComparingTo("-25.00");
+        assertThat(orden.getTotalAmount()).isEqualByComparingTo("225.00");
+    }
+
+    @Test
+    void crearOrden_creditoEnCuotas_aplicaRecargo() {
+        when(variantRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(variante));
+        when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planPagoService.porcentajePara(PaymentMethod.TARJETA_CREDITO, 6)).thenReturn(new BigDecimal("15.00"));
+
+        OrderRequestDTO dto = request(1, null);
+        dto.setPayment(PaymentMethod.TARJETA_CREDITO);
+        dto.setCuotas(6);
+        orderService.crearOrden(dto);
+
+        ArgumentCaptor<OrderEntity> captor = ArgumentCaptor.forClass(OrderEntity.class);
+        verify(orderRepository).save(captor.capture());
+        assertThat(captor.getValue().getCuotas()).isEqualTo(6);
+        assertThat(captor.getValue().getTotalAmount()).isEqualByComparingTo("115.00");
     }
 
     @Test
