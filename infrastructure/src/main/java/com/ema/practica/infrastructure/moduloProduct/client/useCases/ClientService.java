@@ -36,24 +36,26 @@ public class ClientService {
     // ─── Crear cliente ────────────────────────────────────────────────────
     @Transactional
     public ClientDTO crear(ClientDTO dto) {
+        // Email y DNI son opcionales: vacíos se guardan como null
+        String dni = vacioANull(dto.getDni());
+
         // Verificar si ya existe por DNI
-        if (dto.getDni() != null && !dto.getDni().isBlank()) {
-            boolean existe = clientRepository.existsByDni(dto.getDni());
-            if (existe) {
-                throw new VentaInvalidaException(
-                        "Ya existe un cliente con DNI " + dto.getDni()
-                );
-            }
+        if (dni != null && clientRepository.existsByDni(dni)) {
+            throw new VentaInvalidaException("Ya existe un cliente con DNI " + dni);
         }
 
         ClientEntity cliente = new ClientEntity();
         cliente.setName(dto.getName());
-        cliente.setUsername(dto.getUsername());
-        cliente.setMail(dto.getMail());
-        cliente.setDni(dto.getDni());
+        cliente.setUsername(vacioANull(dto.getUsername()));
+        cliente.setMail(vacioANull(dto.getMail()));
+        cliente.setDni(dni);
 
         ClientEntity guardado = clientRepository.save(cliente);
         return toDTO(guardado);
+    }
+
+    private static String vacioANull(String s) {
+        return s != null && !s.isBlank() ? s.trim() : null;
     }
 
     // ─── Obtener por ID ───────────────────────────────────────────────────
