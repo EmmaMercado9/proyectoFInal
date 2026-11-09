@@ -41,6 +41,11 @@ public class OrderMapper {
         dto.setCuotas(order.getCuotasSeguras());
         dto.setAjustePorcentaje(order.getAjustePorcentaje() != null ? order.getAjustePorcentaje() : BigDecimal.ZERO);
         dto.setAjusteMedioPago(order.getAjusteMedioPagoSeguro());
+        dto.setMediosDescripcion(order.getMediosDescripcion());
+        dto.setPagos(order.getPagos().stream()
+                .map(p -> new OrderResponseDTO.PagoVenta(p.getMedio().name(), p.getCuotas(), p.getMonto(),
+                        p.getPorcentaje(), p.getAjuste(), p.getTotal()))
+                .toList());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setAddress(order.getAddress());
         dto.setDescription(order.getDescription());
@@ -126,7 +131,7 @@ public class OrderMapper {
         dto.setTrackingId(order.getTrackingId());
         dto.setOrderDate(order.getOrderDate());
         dto.setCanal(order.getCanal().name());
-        dto.setPayment(order.getPayment().name());
+        dto.setPayment(order.getMediosDescripcion());
         dto.setStatus(order.getStatus().name());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setCantidadItems(order.getDetails().size());

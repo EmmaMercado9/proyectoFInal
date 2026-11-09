@@ -424,7 +424,9 @@ public class FacturacionService {
         }
         BigDecimal ajusteMedio = o.getAjusteMedioPagoSeguro();
         if (ajusteMedio.signum() != 0) {
-            String concepto = ajusteMedio.signum() < 0
+            String concepto = o.getPagos().size() > 1
+                    ? (ajusteMedio.signum() < 0 ? "Descuento por pago combinado" : "Recargo por pago combinado")
+                    : ajusteMedio.signum() < 0
                     ? "Descuento por pago en " + o.getPayment().name().toLowerCase().replace('_', ' ')
                     : "Recargo por pago en " + o.getCuotasSeguras() + " cuotas";
             items.add(new FacturaResponseDTO.Item(concepto, BigDecimal.ONE, ajusteMedio, ajusteMedio));

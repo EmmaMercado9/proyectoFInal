@@ -16,6 +16,7 @@ import com.ema.practica.infrastructure.order.enumOrder.OrderStatus;
 import com.ema.practica.infrastructure.order.enumOrder.PaymentMethod;
 import com.ema.practica.infrastructure.order.mapper.OrderMapper;
 import com.ema.practica.infrastructure.order.rest.model.OrderRequestDTO;
+import com.ema.practica.infrastructure.order.rest.model.PagoRequestDTO;
 import com.ema.practica.infrastructure.pagos.useCases.PlanPagoService;
 import com.ema.practica.infrastructure.util.user.crud.IListUserCrud;
 import org.junit.jupiter.api.BeforeEach;
@@ -126,6 +127,45 @@ class OrderServiceTest {
         verify(orderRepository).save(captor.capture());
         assertThat(captor.getValue().getCuotas()).isEqualTo(6);
         assertThat(captor.getValue().getTotalAmount()).isEqualByComparingTo("115.00");
+    }
+
+    @Test
+    void crearOrden_pagoCombinado_cadaParteLlevaSuPorcentaje() {
+        when(variantRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(variante));
+        when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(planPagoService.porcentajePara(PaymentMethod.EFECTIVO, 1)).thenReturn(new BigDecimal("-10.00"));
+        when(planPagoService.porcentajePara(PaymentMethod.TARJETA_CREDITO, 3)).thenReturn(new BigDecimal("20.00"));
+
+        OrderRequestDTO dto = request(3, null);
+        dto.setPagos(List.of(
+                new PagoRequestDTO(PaymentMethod.EFECTIVO, null, new BigDecimal("100.00")),
+                new PagoRequestDTO(PaymentMethod.TARJETA_CREDITO, 3, new BigDecimal("200.00"))));
+        orderService.crearOrden(dto);
+
+        ArgumentCaptor<OrderEntity> captor = ArgumentCaptor.forClass(OrderEntity.class);
+        verify(orderRepository).save(captor.capture());
+        OrderEntity orden = captor.getValue();
+
+        // 100 − 10 % + 200 + 20 % = 90 + 240
+        assertThat(orden.getTotalAmount()).isEqualByComparingTo("330.00");
+        assertThat(orden.getAjusteMedioPago()).isEqualByComparingTo("30.00");
+        assertThat(orden.getPayment()).isEqualTo(PaymentMethod.TARJETA_CREDITO);   // el de mayor monto
+        assertThat(orden.getMediosDescripcion()).isEqualTo("EFECTIVO + TARJETA_CREDITO");
+    }
+
+    @Test
+    void crearOrden_pagoCombinado_quenoCubreLaVenta_falla() {
+        when(variantRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(variante));
+
+        OrderRequestDTO dto = request(3, null);
+        dto.setPagos(List.of(
+                new PagoRequestDTO(PaymentMethod.EFECTIVO, null, new BigDecimal("100.00")),
+                new PagoRequestDTO(PaymentMethod.TARJETA_DEBITO, null, new BigDecimal("50.00"))));
+
+        assertThatThrownBy(() -> orderService.crearOrden(dto))
+                .isInstanceOf(VentaInvalidaException.class)
+                .hasMessageContaining("suman");
+        verify(orderRepository, never()).save(any());
     }
 
     @Test

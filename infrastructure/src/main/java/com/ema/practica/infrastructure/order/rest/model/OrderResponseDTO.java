@@ -24,6 +24,12 @@ public class OrderResponseDTO {
     private Integer cuotas;
     private BigDecimal ajustePorcentaje;   // negativo = descuento, positivo = recargo
     private BigDecimal ajusteMedioPago;
+    private String mediosDescripcion;
+    private List<PagoVenta> pagos;
+
+    public record PagoVenta(String medio, Integer cuotas, BigDecimal monto, BigDecimal porcentaje,
+                            BigDecimal ajuste, BigDecimal total) {
+    }
     private BigDecimal totalAmount;
     private String address;
     private String description;

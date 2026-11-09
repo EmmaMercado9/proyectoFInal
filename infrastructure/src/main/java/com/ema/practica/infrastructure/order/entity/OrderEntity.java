@@ -112,6 +112,10 @@ public class OrderEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDetailEntity> details = new ArrayList<>();
 
+    // Pago combinado: vacío cuando la venta se pagó con un solo medio
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PagoVentaEntity> pagos = new ArrayList<>();
+
     // Método de negocio: recalcula totales desde los detalles
     public void recalcularTotales() {
         this.subtotal = details.stream()
@@ -125,11 +129,42 @@ public class OrderEntity {
         }
         BigDecimal base = this.subtotal.subtract(desc);
 
+        if (!this.pagos.isEmpty()) {
+            aplicarPagosCombinados(base);
+            return;
+        }
+
         // El porcentaje del medio de pago se aplica después del descuento manual
         BigDecimal pct = this.ajustePorcentaje != null ? this.ajustePorcentaje : BigDecimal.ZERO;
         this.ajusteMedioPago = base.multiply(pct)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         this.totalAmount = base.add(this.ajusteMedioPago);
+    }
+
+    /** Cada parte lleva el porcentaje de su medio; entre todas tienen que cubrir la venta. */
+    private void aplicarPagosCombinados(BigDecimal base) {
+        BigDecimal cubierto = pagos.stream().map(PagoVentaEntity::getMonto).reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (cubierto.compareTo(base) != 0) {
+            throw new VentaInvalidaException("Los pagos suman " + cubierto + " y la venta es de " + base + ".");
+        }
+        BigDecimal ajuste = BigDecimal.ZERO;
+        for (PagoVentaEntity p : pagos) {
+            p.setAjuste(p.getMonto().multiply(p.getPorcentaje())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+            ajuste = ajuste.add(p.getAjuste());
+        }
+        this.ajusteMedioPago = ajuste;
+        this.ajustePorcentaje = base.signum() > 0
+                ? ajuste.multiply(BigDecimal.valueOf(100)).divide(base, 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+        this.totalAmount = base.add(ajuste);
+    }
+
+    /** "EFECTIVO + TARJETA_DEBITO" en un pago combinado; si no, el único medio. */
+    public String getMediosDescripcion() {
+        return pagos.size() > 1
+                ? pagos.stream().map(p -> p.getMedio().name()).collect(java.util.stream.Collectors.joining(" + "))
+                : payment.name();
     }
 
     public int getCuotasSeguras() {

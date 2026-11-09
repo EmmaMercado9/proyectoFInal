@@ -17,7 +17,9 @@ import com.ema.practica.infrastructure.pagos.useCases.PlanPagoService;
 import com.ema.practica.infrastructure.order.enumOrder.OrderStatus;
 import com.ema.practica.infrastructure.order.mapper.OrderMapper;
 import com.ema.practica.infrastructure.order.rest.model.OrderListadoDTO;
+import com.ema.practica.infrastructure.order.entity.PagoVentaEntity;
 import com.ema.practica.infrastructure.order.rest.model.OrderRequestDTO;
+import com.ema.practica.infrastructure.order.rest.model.PagoRequestDTO;
 import com.ema.practica.infrastructure.order.rest.model.OrderResponseDTO;
 import com.ema.practica.infrastructure.util.user.crud.IListUserCrud;
 import com.ema.practica.infrastructure.util.user.entity.UserEntity;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -76,11 +79,15 @@ public class OrderService {
                 ? dto.getDiscount() : BigDecimal.ZERO);
 
         // 2. Descuento o recargo del medio de pago: lo decide el servidor, no el frontend
-        int cuotas = dto.getCuotas() != null ? dto.getCuotas() : 1;
-        order.setCuotas(cuotas);
-        order.setAjustePorcentaje(dto.getAjustePorcentajeForzado() != null
-                ? dto.getAjustePorcentajeForzado()
-                : planPagoService.porcentajePara(dto.getPayment(), cuotas));
+        if (dto.getPagos() != null && dto.getPagos().size() > 1) {
+            cargarPagosCombinados(order, dto.getPagos());
+        } else {
+            int cuotas = dto.getCuotas() != null ? dto.getCuotas() : 1;
+            order.setCuotas(cuotas);
+            order.setAjustePorcentaje(dto.getAjustePorcentajeForzado() != null
+                    ? dto.getAjustePorcentajeForzado()
+                    : planPagoService.porcentajePara(dto.getPayment(), cuotas));
+        }
 
         // 3. Procesar cada item del carrito
         for (OrderDetailRequestDTO item : dto.getItems()) {
@@ -128,6 +135,17 @@ public class OrderService {
         OrderEntity guardada = orderRepository.save(order);
 
         return orderMapper.toResponseDTO(guardada);
+    }
+
+    private void cargarPagosCombinados(OrderEntity order, List<PagoRequestDTO> pagos) {
+        for (PagoRequestDTO p : pagos) {
+            int cuotas = p.cuotas() != null ? p.cuotas() : 1;
+            order.getPagos().add(new PagoVentaEntity(order, p.medio(), cuotas, p.monto(),
+                    planPagoService.porcentajePara(p.medio(), cuotas)));
+        }
+        // La columna de la venta guarda el medio que cubre la mayor parte
+        order.setPayment(pagos.stream().max(java.util.Comparator.comparing(PagoRequestDTO::monto)).orElseThrow().medio());
+        order.setCuotas(1);
     }
 
     // Listado para admin — ve todas las órdenes

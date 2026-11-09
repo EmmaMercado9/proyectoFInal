@@ -16,6 +16,7 @@ import com.ema.practica.infrastructure.moduloProduct.productVariant.crud.Product
 import com.ema.practica.infrastructure.moduloProduct.productVariant.entity.ProductVariantEntity;
 import com.ema.practica.infrastructure.order.crud.OrderRepository;
 import com.ema.practica.infrastructure.order.entity.OrderEntity;
+import com.ema.practica.infrastructure.order.entity.PagoVentaEntity;
 import com.ema.practica.infrastructure.order.enumOrder.OrderStatus;
 import com.ema.practica.infrastructure.order.enumOrder.PaymentMethod;
 import com.ema.practica.infrastructure.reportes.rest.model.ReporteDTO;
@@ -95,7 +96,7 @@ public class ReporteService {
 
         Resumen resumen = resumen(actual);
         List<Producto> porProducto = porProducto(actual.lineas);
-        List<Item> porPago = porOrden(actual, o -> etiqueta(o.getPayment()));
+        List<Item> porPago = porMedioDePago(actual);
         List<Item> porDia = porDiaDeSemana(actual);
         List<Item> porCategoria = porLinea(actual.lineas, l -> categoria(l.variante.getProduct()));
         List<Item> porMarca = porLinea(actual.lineas, l -> Optional.ofNullable(l.variante.getProduct().getMarca())
@@ -207,9 +208,13 @@ public class ReporteService {
         // Descuento manual + descuento por medio de pago (efectivo); los recargos de cuotas van aparte
         BigDecimal recargos = BigDecimal.ZERO, descuentoMedio = BigDecimal.ZERO;
         for (OrderEntity o : v.validas) {
-            BigDecimal a = o.getAjusteMedioPagoSeguro();
-            if (a.signum() > 0) recargos = recargos.add(a);
-            else descuentoMedio = descuentoMedio.subtract(a);
+            List<BigDecimal> ajustes = o.getPagos().isEmpty()
+                    ? List.of(o.getAjusteMedioPagoSeguro())
+                    : o.getPagos().stream().map(PagoVentaEntity::getAjuste).toList();
+            for (BigDecimal a : ajustes) {
+                if (a.signum() > 0) recargos = recargos.add(a);
+                else descuentoMedio = descuentoMedio.subtract(a);
+            }
         }
         BigDecimal descuentos = suma(v.validas, OrderEntity::getDiscount).add(descuentoMedio);
         BigDecimal devoluciones = suma(v.devoluciones, DevolucionEntity::getMontoDevuelto);
@@ -239,6 +244,31 @@ public class ReporteService {
     }
 
     /** Agrupa ventas enteras (medio de pago, vendedor…), ordenadas de mayor a menor. */
+    /** Un pago combinado reparte la venta entre sus medios, según lo cobrado con cada uno. */
+    List<Item> porMedioDePago(Ventas v) {
+        Map<String, Item> porMedio = new LinkedHashMap<>();
+        for (OrderEntity o : v.validas) {
+            if (o.getPagos().isEmpty()) {
+                sumarMedio(porMedio, etiqueta(o.getPayment()), v.netaDe(o), v.gananciaDe(o));
+                continue;
+            }
+            for (PagoVentaEntity p : o.getPagos()) {
+                BigDecimal parte = nz(o.getTotalAmount()).signum() > 0
+                        ? p.getTotal().divide(o.getTotalAmount(), 6, RoundingMode.HALF_UP)
+                        : BigDecimal.ZERO;
+                sumarMedio(porMedio, etiqueta(p.getMedio()),
+                        v.netaDe(o).multiply(parte).setScale(2, RoundingMode.HALF_UP),
+                        v.gananciaDe(o).multiply(parte).setScale(2, RoundingMode.HALF_UP));
+            }
+        }
+        return porMedio.values().stream().sorted(Comparator.comparing(Item::ventas).reversed()).toList();
+    }
+
+    private static void sumarMedio(Map<String, Item> porMedio, String medio, BigDecimal ventas, BigDecimal ganancia) {
+        porMedio.merge(medio, new Item(medio, ventas, ganancia, 1),
+                (a, b) -> new Item(medio, a.ventas().add(b.ventas()), a.ganancia().add(b.ganancia()), a.cantidad() + 1));
+    }
+
     List<Item> porOrden(Ventas v, Function<OrderEntity, String> clave) {
         return v.validas.stream().collect(Collectors.groupingBy(clave, LinkedHashMap::new, Collectors.toList()))
                 .entrySet().stream()

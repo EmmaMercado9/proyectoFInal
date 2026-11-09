@@ -28,7 +28,7 @@ public class DevolucionMapper {
         OrderEntity order = d.getOrder();
         dto.setIdOrder(order.getIdOrder());
         dto.setTrackingIdOrden(order.getTrackingId());
-        dto.setPaymentOrden(order.getPayment() != null ? order.getPayment().name() : null);
+        dto.setPaymentOrden(order.getPayment() != null ? order.getMediosDescripcion() : null);
         if (order.getClientEntity() != null) {
             ClientEntity c = order.getClientEntity();
             dto.setCliente(new ClientResumenDTO(c.getIdClient(), c.getName(), c.getMail(), c.getDni()));

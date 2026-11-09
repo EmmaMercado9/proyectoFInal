@@ -11,6 +11,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +40,10 @@ public class OrderRequestDTO {
     // Solo para TARJETA_CREDITO (1, 3, 4, 6...); null = 1 cuota
     @Min(value = 1, message = "Las cuotas deben ser al menos 1")
     private Integer cuotas;
+
+    // Pago combinado: dos o más medios. Si viene, reemplaza a payment y cuotas
+    @Size(max = 5, message = "Se pueden combinar hasta 5 pagos")
+    private List<@Valid PagoRequestDTO> pagos;
 
     // Uso interno (venta de un cambio): mantiene el porcentaje de la venta original.
     // No se acepta del frontend: el porcentaje siempre lo decide el servidor.
