@@ -1,0 +1,5 @@
+.git
+.claude
+backups
+**/target
+**/application-local.properties

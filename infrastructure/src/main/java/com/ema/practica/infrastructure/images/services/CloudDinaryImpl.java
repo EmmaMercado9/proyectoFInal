@@ -2,6 +2,7 @@ package com.ema.practica.infrastructure.images.services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,11 +18,13 @@ import java.util.Objects;
 public class CloudDinaryImpl implements CloudDinaryService  {
     private final Cloudinary cloudinary;
 
-    public CloudDinaryImpl(){
+    public CloudDinaryImpl(@Value("${cloudinary.cloud-name:}") String cloudName,
+                           @Value("${cloudinary.api-key:}") String apiKey,
+                           @Value("${cloudinary.api-secret:}") String apiSecret){
         Map<String,String> valuesMap=new HashMap<>();
-        valuesMap.put("cloud_name","dajnsslf2");
-        valuesMap.put("api_key","111174551421823");
-        valuesMap.put("api_secret","WBdnIaALr75sGt6Zv8prwy9hfXQ");
+        valuesMap.put("cloud_name",cloudName);
+        valuesMap.put("api_key",apiKey);
+        valuesMap.put("api_secret",apiSecret);
         cloudinary=new Cloudinary(valuesMap);
     }
 

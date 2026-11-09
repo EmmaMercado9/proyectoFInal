@@ -6,3 +6,8 @@ JWT_SECRET=
 # Usuario administrador que se crea la primera vez (si falta, no se crea)
 ADMIN_PASSWORD=
 # ADMIN_EMAIL=admin@gmail.com
+
+# Cloudinary (imágenes)
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
