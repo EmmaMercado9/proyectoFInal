@@ -143,6 +143,63 @@ class ImportacionFacturaServiceTest {
     }
 
     @Test
+    void vistaPrevia_asociaPorNombreAunqueElCodigoSeaDistinto() {
+        ProductEntity propio = productoConTalle("MIO-1", "39", talle, 3);
+        propio.setNameProduct("zapatillas RUNFALCON 6");
+        when(productRepository.findAll()).thenReturn(List.of(propio));
+
+        ModeloImportadoDTO m = service.vistaPrevia(factura("83999.30",
+                linea("OTRO-COD", "39", 1, "83999.30", null))).getModelos().get(0);
+
+        assertThat(m.getProductoId()).isEqualTo(propio.getIdProduct());
+        assertThat(m.getCoincidencia()).isEqualTo("NOMBRE");
+        assertThat(m.getTalles().get(0).getVarianteId()).isEqualTo(10L);
+    }
+
+    @Test
+    void vistaPrevia_nombreParcial_soloQuedaComoSugerencia() {
+        ProductEntity propio = productoConTalle("MIO-1", "39", talle, 3);   // "Runfalcon"
+        when(productRepository.findAll()).thenReturn(List.of(propio));
+
+        ModeloImportadoDTO m = service.vistaPrevia(factura("83999.30",
+                linea("OTRO-COD", "39", 1, "83999.30", null))).getModelos().get(0);
+
+        assertThat(m.getProductoId()).isNull();
+        assertThat(m.getCandidatos()).extracting("id").containsExactly(propio.getIdProduct());
+    }
+
+    @Test
+    void confirmar_conProductoAsociado_sumaStockSinCrearOtro() throws Exception {
+        ProductEntity propio = productoConTalle("MIO-1", "39", talle, 3);
+        when(productRepository.findById(propio.getIdProduct())).thenReturn(Optional.of(propio));
+        ImportacionFacturaDTO dto = service.vistaPrevia(factura("83999.30", linea("OTRO-COD", "39", 1, "83999.30", null)));
+        dto.getModelos().get(0).setProductoId(propio.getIdProduct());
+
+        service.confirmar(dto, "admin");
+
+        verify(productService).sumarStockCompra(10L, 1, new BigDecimal("83999.30"));
+        verify(productService, never()).crearProducto(any(), any());
+    }
+
+    @Test
+    void confirmar_productoSinTalles_sumaEnSuVarianteInterna() throws Exception {
+        ProductEntity propio = new ProductEntity();
+        propio.setIdProduct(UUID.randomUUID());
+        propio.setTieneVariantes(false);
+        ProductVariantEntity interna = new ProductVariantEntity();
+        interna.setVariantId(20L);
+        interna.setEsDefault(true);
+        propio.agregarVariante(interna);
+        when(productRepository.findById(propio.getIdProduct())).thenReturn(Optional.of(propio));
+        ImportacionFacturaDTO dto = service.vistaPrevia(factura("500", linea("MEDIAS", "Único", 2, "250", null)));
+        dto.getModelos().get(0).setProductoId(propio.getIdProduct());
+
+        service.confirmar(dto, "admin");
+
+        verify(productService).sumarStockCompra(20L, 2, new BigDecimal("250"));
+    }
+
+    @Test
     void precioSugerido_sinPrecioDeLista_esCostoMas50PorCientoRedondeado() {
         assertThat(ImportacionFacturaService.precioSugerido(linea("KJ8770", "US 5", 1, "93499", null)))
                 .isEqualByComparingTo("140300");   // 140.248,50 → redondeado hacia arriba a $100
@@ -181,7 +238,9 @@ class ImportacionFacturaServiceTest {
 
     @Test
     void confirmar_sumaStockEnLaVarianteExistente() throws Exception {
-        when(productRepository.findBySku("IH9536")).thenReturn(Optional.of(productoConTalle("IH9536", "39", talle, 3)));
+        ProductEntity existente = productoConTalle("IH9536", "39", talle, 3);
+        when(productRepository.findBySku("IH9536")).thenReturn(Optional.of(existente));
+        when(productRepository.findById(existente.getIdProduct())).thenReturn(Optional.of(existente));
 
         ImportacionFacturaDTO dto = service.vistaPrevia(factura("167998.60", linea("IH9536", "39", 2, "83999.30", "119999")));
         ResultadoImportacionDTO r = service.confirmar(dto, "admin");

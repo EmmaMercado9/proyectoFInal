@@ -32,6 +32,8 @@ public interface ProductVariantRepository
 
     boolean existsBySku(String sku);
 
+    Optional<ProductVariantEntity> findFirstBySkuIgnoreCase(String sku);
+
     boolean existsByCodigoBarraAndVariantIdNot(String codigoBarra, Long variantId);
 
     // FOR UPDATE bloquea la fila hasta que termine la transacción

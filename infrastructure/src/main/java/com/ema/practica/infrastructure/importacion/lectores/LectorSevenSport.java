@@ -1,5 +1,6 @@
 package com.ema.practica.infrastructure.importacion.lectores;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.util.regex.Pattern;
  * 3 últimos son el talle US × 10). Es una deducción, por eso se confirma en la vista previa.
  */
 @Component
+@Order(2)
 public class LectorSevenSport implements LectorFactura {
 
     static final String CUIT = "33-71199188-9";

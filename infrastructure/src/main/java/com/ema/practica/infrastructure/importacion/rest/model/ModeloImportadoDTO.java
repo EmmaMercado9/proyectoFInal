@@ -29,6 +29,8 @@ public class ModeloImportadoDTO {
     // Solo vista previa: si el producto ya existe en el sistema
     private UUID productoId;
     private String productoExistente;
+    private String coincidencia;     // CODIGO o NOMBRE: por qué se asoció al producto
+    private List<CandidatoProductoDTO> candidatos = new ArrayList<>();
 
     @NotEmpty
     @Valid

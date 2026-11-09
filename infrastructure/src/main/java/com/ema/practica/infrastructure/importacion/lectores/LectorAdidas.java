@@ -1,5 +1,6 @@
 package com.ema.practica.infrastructure.importacion.lectores;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -15,6 +16,7 @@ import java.util.regex.Pattern;
  * Algunas descripciones largas se cortan en dos renglones.
  */
 @Component
+@Order(1)
 public class LectorAdidas implements LectorFactura {
 
     static final String CUIT = "30-68514022-1";

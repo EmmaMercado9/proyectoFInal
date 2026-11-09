@@ -29,6 +29,7 @@ public class ImportacionFacturaDTO {
     // Solo vista previa
     private BigDecimal sumaLineas;
     private boolean totalCoincide;
+    private boolean generica;        // formato no conocido: hay que revisar lo leído
     private String yaImportada;      // mensaje si esa factura ya se cargó
     private int unidades;
 

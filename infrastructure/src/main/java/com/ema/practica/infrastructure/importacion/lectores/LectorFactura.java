@@ -12,4 +12,9 @@ public interface LectorFactura {
 
     /** Convierte el texto del PDF al formato común. */
     FacturaLeida leer(String texto);
+
+    /** true si no conoce el formato: necesita el texto en orden visual y más revisión del usuario. */
+    default boolean esGenerico() {
+        return false;
+    }
 }
