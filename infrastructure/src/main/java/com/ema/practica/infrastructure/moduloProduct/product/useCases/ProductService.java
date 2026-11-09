@@ -394,8 +394,37 @@ public class ProductService {
     }
 
 
+    /** Opciones de los filtros del inventario, sin repetidos y en orden natural. */
+    @Transactional
+    public Map<String, List<String>> opcionesDeFiltro() {
+        Map<String, String> marcas = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        productRepository.marcas().forEach(m -> marcas.putIfAbsent(m.trim(), m.trim()));
+        return Map.of(
+                "marcas", new ArrayList<>(marcas.values()),
+                "talles", productRepository.valoresDeAtributo("tall%").stream()
+                        .sorted(Comparator.comparingInt(ProductService::ordenLetra)
+                                .thenComparingDouble(ProductService::ordenNumero)
+                                .thenComparing(String::compareToIgnoreCase))
+                        .toList(),
+                "colores", productRepository.valoresDeAtributo("color%").stream()
+                        .sorted(String::compareToIgnoreCase).toList());
+    }
+
+    /** Los talles con número van primero; después XS, S, M, L... */
+    private static int ordenLetra(String talle) {
+        if (talle.matches(".*\\d.*")) return 0;
+        int i = List.of("XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL").indexOf(talle.toUpperCase());
+        return i >= 0 ? i + 1 : 100;
+    }
+
+    private static double ordenNumero(String talle) {
+        String n = talle.replaceAll("[^0-9.]", "");
+        return n.isEmpty() || n.equals(".") ? 0 : Double.parseDouble(n);
+    }
+
     public Page<ProductListadoDTO> listar(
-            String nombre, String status, int page, int size) {
+            String nombre, String status, String marca, Long categoriaId,
+            String talle, String color, String stock, Boolean conVariantes, int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         String nom = (nombre != null && !nombre.isBlank()) ? nombre : null;
@@ -410,10 +439,15 @@ public class ProductService {
             }
         }
         return productRepository
-                .listarConFiltros(nom, statusEnum, pageable)
+                .listarConFiltros(nom, statusEnum, vacioANull(marca), categoriaId,
+                        vacioANull(talle), vacioANull(color), vacioANull(stock), conVariantes, pageable)
                 .map(productMapper::toListadoDTO);
     }
 
+
+    private static String vacioANull(String s) {
+        return s != null && !s.isBlank() ? s : null;
+    }
 
     private Integer calcularMargen(BigDecimal precio, BigDecimal costo) {
         // Margen sobre precio de venta: se divide por precio, no por costo

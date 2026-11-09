@@ -79,9 +79,21 @@ public class ProductController {
     public ResponseEntity<Page<ProductListadoDTO>> listar(
             @RequestParam(required = false)    String nombre,
             @RequestParam(required = false)    String status,
+            @RequestParam(required = false)    String marca,
+            @RequestParam(required = false)    Long   categoriaId,
+            @RequestParam(required = false)    String talle,
+            @RequestParam(required = false)    String color,
+            @RequestParam(required = false)    String stock,
+            @RequestParam(required = false)    Boolean conVariantes,
             @RequestParam(defaultValue = "0")  int    page,
             @RequestParam(defaultValue = "12") int    size) {
-        return ResponseEntity.ok(productService.listar(nombre, status, page, size));
+        return ResponseEntity.ok(productService.listar(nombre, status, marca, categoriaId, talle, color, stock, conVariantes, page, size));
+    }
+
+    // GET /api/productos/filtros — marcas, talles y colores para los filtros del inventario
+    @GetMapping("/filtros")
+    public ResponseEntity<Map<String, List<String>>> filtros() {
+        return ResponseEntity.ok(productService.opcionesDeFiltro());
     }
 
     // GET /api/productos/{productId} — detalle completo

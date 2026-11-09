@@ -257,6 +257,16 @@ class ReporteServiceTest {
     }
 
     @Test
+    void ventasSinFacturar_cuentaLasVigentesDeLaSemanaEnElAmbienteActual() {
+        when(orderRepository.contarSinFacturar(
+                org.mockito.ArgumentMatchers.argThat(e -> e.contains(OrderStatus.COMPLETADA) && !e.contains(OrderStatus.CANCELADA)),
+                org.mockito.ArgumentMatchers.eq(LocalDate.now().minusDays(6).atStartOfDay()),
+                org.mockito.ArgumentMatchers.eq("HOMOLOGACION"))).thenReturn(4L);
+
+        assertThat(service.ventasSinFacturar()).isEqualTo(4L);
+    }
+
+    @Test
     void rangoInvalido_falla() {
         assertThatThrownBy(() -> service.generar(HOY, HOY.minusDays(1), HOY))
                 .isInstanceOf(VentaInvalidaException.class);

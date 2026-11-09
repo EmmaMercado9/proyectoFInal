@@ -68,6 +68,15 @@ public class ReporteService {
     private final FacturaImportadaRepository facturaImportadaRepository;
     private final ArcaProperties arcaProperties;
 
+    /** Ventas vigentes de los últimos 7 días sin Factura C en el ambiente actual. */
+    @Transactional(readOnly = true)
+    public long ventasSinFacturar() {
+        return orderRepository.contarSinFacturar(
+                EnumSet.of(OrderStatus.COMPLETADA, OrderStatus.DEVUELTA_PARCIAL),
+                LocalDate.now().minusDays(6).atStartOfDay(),
+                arcaProperties.getAmbiente().name());
+    }
+
     @Transactional(readOnly = true)
     public ReporteDTO generar(LocalDate desde, LocalDate hasta) {
         return generar(desde, hasta, LocalDate.now());

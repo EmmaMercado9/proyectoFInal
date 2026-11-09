@@ -19,6 +19,11 @@ public class ReporteController {
 
     private final ReporteService service;
 
+    @GetMapping("/ventas-sin-facturar")
+    public long ventasSinFacturar() {
+        return service.ventasSinFacturar();
+    }
+
     /** Por defecto, los últimos 30 días. Fechas en formato yyyy-MM-dd. */
     @GetMapping
     public ReporteDTO reporte(

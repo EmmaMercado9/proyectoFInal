@@ -3,6 +3,7 @@ import com.ema.practica.infrastructure.audit.AuditableEntity;
 import com.ema.practica.infrastructure.util.rol.Rol;
 import com.ema.practica.infrastructure.util.status.StatusEntity;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,8 @@ public class UserEntity extends AuditableEntity {
     private String name;
     @Column(name = "mail")
     private String mail;
+    // Se recibe al crear o modificar, pero nunca se devuelve en las respuestas
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "password")
     private String password;
     @Column(name="status")
