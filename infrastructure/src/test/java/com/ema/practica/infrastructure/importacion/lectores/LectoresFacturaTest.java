@@ -107,6 +107,26 @@ class LectoresFacturaTest {
     }
 
     @Test
+    void seven_leeRopaConTalleEnLetras() {
+        FacturaLeida f = seven.leer("""
+                TOTAL $ 112.453,00
+                1,00 KJ895142090 Zapatillas Hombre adidas Terrex Eastrail
+                3 KJ895142090 0,00 $ 80.324,00 $ 80.324,00
+                1,00 KD393260L Remera Hombre adidas Cookie
+                KD393260L 0,00 $ 21.419,00 $ 21.419,00
+                1,00 JZ116733XL Remera Hombre adidas Terrex Classic
+                JZ116733XL 0,00 $ 10.710,00 $ 10.710,00
+                """);
+
+        assertThat(f.lineas()).hasSize(3);
+        assertThat(f.lineas().get(0).talle()).isEqualTo("US 9");
+        assertThat(f.lineas().get(1).codigoArticulo()).isEqualTo("KD3932");
+        assertThat(f.lineas().get(1).talle()).isEqualTo("L");
+        assertThat(f.lineas().get(2).talle()).isEqualTo("XL");
+        assertThat(f.sumaLineas()).isEqualByComparingTo(f.total());
+    }
+
+    @Test
     void seven_talleUs() {
         assertThat(LectorSevenSport.talleUs("33050")).isEqualTo("US 5");
         assertThat(LectorSevenSport.talleUs("20085")).isEqualTo("US 8.5");

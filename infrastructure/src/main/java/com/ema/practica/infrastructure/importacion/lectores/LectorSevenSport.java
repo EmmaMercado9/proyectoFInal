@@ -33,7 +33,7 @@ public class LectorSevenSport implements LectorFactura {
      * \$ precio \$ subtotal
      */
     private static final Pattern RENGLON = Pattern.compile(
-            "(\\d+),\\d{2}\\s+([A-Z]{2}\\d{4})(\\d{5})\\s+(.+?)\\s*\\2\\3\\s+[\\d.,]+\\s+\\$\\s*([\\d.]+,\\d{2})\\s+\\$\\s*([\\d.]+,\\d{2})",
+            "(\\d+),\\d{2}\\s+([A-Z]{2}\\d{4})([A-Z0-9]+)\\s+(.+?)\\s*\\2\\3\\s+[\\d.,]+\\s+\\$\\s*([\\d.]+,\\d{2})\\s+\\$\\s*([\\d.]+,\\d{2})",
             Pattern.DOTALL);
 
     private static final Pattern TOTAL = Pattern.compile("(?m)^TOTAL\\s*\\$\\s*([\\d.]+,\\d{2})");
@@ -67,6 +67,10 @@ public class LectorSevenSport implements LectorFactura {
 
     /** "33050" → "US 5", "20085" → "US 8.5", "20100" → "US 10". */
     static String talleUs(String codigoTalle) {
+        // Ropa: dos dígitos y el talle en letras ("60L" = L, "33XL" = XL)
+        if (!codigoTalle.matches("\\d{5}")) {
+            return codigoTalle.replaceFirst("^\\d{2}(?=[A-Z])", "");
+        }
         int decimas = Integer.parseInt(codigoTalle.substring(2));
         BigDecimal talle = BigDecimal.valueOf(decimas, 1).stripTrailingZeros();
         return "US " + talle.toPlainString();
