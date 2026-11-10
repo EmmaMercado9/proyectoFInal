@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
  * <pre>IH9536 Zapatillas Runfalcon 638.5 (UK 6.5) UNIDAD 2 119.999,000 30,00 167.998,60</pre>
  * código · descripción con el talle EU pegado · (talle UK) · cantidad · precio de lista · % dto · importe.
  * Algunas descripciones largas se cortan en dos renglones.
+ * Bolsos, mochilas y ropa traen el talle como texto: "...medianoTALLE ÚNICO UNIDAD 1 ...".
  */
 @Component
 @Order(1)
@@ -26,16 +27,26 @@ public class LectorAdidas implements LectorFactura {
      * ((?:(?!^[A-Z]{2}\d{4}\s).)+?)  descripción (perezosa, puede ocupar 2 renglones,
      *                                pero nunca "se come" el renglón del artículo siguiente)
      * (\d{2}(?:\.5)?)\s*\(UK         talle EU: 2 dígitos + ".5" opcional, justo antes de "(UK"
+     * | TALLE\s*(\S+)               o el talle como texto (ÚNICO, S, M, XL...)
      * UNIDAD cantidad precio %dto importe
      */
     private static final Pattern RENGLON = Pattern.compile(
-            "^([A-Z]{2}\\d{4})\\s+((?:(?!^[A-Z]{2}\\d{4}\\s).)+?)\\s*(\\d{2}(?:\\.5)?)\\s*\\(UK\\s*[\\d.]+\\)\\s*"
+            "^([A-Z]{2}\\d{4})\\s+((?:(?!^[A-Z]{2}\\d{4}\\s).)+?)\\s*"
+                    + "(?:(\\d{2}(?:\\.5)?)\\s*\\(UK\\s*[\\d.]+\\)|TALLE\\s*(\\S+))\\s*"
                     + "(?:UNIDAD|PAR)\\s+(\\d+)\\s+([\\d.]+,\\d+)\\s+([\\d.]+,\\d+)\\s+([\\d.]+,\\d+)",
             Pattern.MULTILINE | Pattern.DOTALL);
 
     // El total puede venir antes o después de la etiqueta, según cómo se extraiga el texto
-    private static final Pattern TOTAL_ANTES = Pattern.compile("([\\d.]+,\\d{2})\\s*TOTAL PESOS");
+    private static final Pattern TOTAL_ANTES = Pattern.compile("([\\d.]+,\\d{2})[ \\t]*TOTAL PESOS");
     private static final Pattern TOTAL_DESPUES = Pattern.compile("TOTAL PESOS\\s*([\\d.]+,\\d{2})");
+
+    static final String TALLE_UNICO = "Único";
+
+    /** Talle de ropa (S, M, XL...) tal cual; cualquier otra cosa ("ÚNICO", aunque venga mal codificado) es talle único */
+    private static String talleTexto(String t) {
+        String limpio = t.toUpperCase();
+        return limpio.matches("X{0,3}[SML]|XXXL|XXL|XL") ? limpio : TALLE_UNICO;
+    }
 
     @Override
     public boolean reconoce(String texto) {
@@ -49,11 +60,12 @@ public class LectorAdidas implements LectorFactura {
         while (m.find()) {
             String codigo = m.group(1);
             String descripcion = m.group(2).replaceAll("\\s+", " ").trim();
-            String talle = m.group(3);
-            int cantidad = Integer.parseInt(m.group(4));
-            BigDecimal precioLista = Importes.ar(m.group(5));
-            BigDecimal importe = Importes.ar(m.group(7));
-            lineas.add(new LineaFactura(codigo, descripcion, "Adidas", talle, codigo + "-" + talle,
+            String talle = m.group(3) != null ? m.group(3) : talleTexto(m.group(4));
+            int cantidad = Integer.parseInt(m.group(5));
+            BigDecimal precioLista = Importes.ar(m.group(6));
+            BigDecimal importe = Importes.ar(m.group(8));
+            String sku = codigo + "-" + (talle.equals(TALLE_UNICO) ? "UNICO" : talle);
+            lineas.add(new LineaFactura(codigo, descripcion, "Adidas", talle, sku,
                     cantidad, Importes.porUnidad(importe, cantidad), precioLista, importe));
         }
         String total = Importes.primero(TOTAL_ANTES, texto);

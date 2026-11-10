@@ -90,6 +90,31 @@ class LectoresFacturaTest {
     }
 
     @Test
+    void adidas_leeBolsosYMochilasDeTalleUnico() {
+        String texto = """
+                C.U.I.T: 30-68514022-1
+                JD9555 Bolso deportivo Linear medianoTALLE Ã?NICO UNIDAD 1 48.999,000 30,00 34.299,30
+                IE1245 Botines F50 Club Terreno Firme40 (UK 8) UNIDAD 1 109.999,000 30,00 76.999,30
+                JI6953 Mochila Classic 3 Barras LogoTALLE ÚNICO UNIDAD 2 35.999,000 30,00 50.398,60
+                TOTAL PESOS 161.697,20
+                """;
+
+        var lineas = adidas.leer(texto).lineas();
+
+        assertThat(lineas).hasSize(3);
+        LineaFactura bolso = lineas.get(0);
+        assertThat(bolso.descripcion()).isEqualTo("Bolso deportivo Linear mediano");
+        assertThat(bolso.talle()).isEqualTo("Único");
+        assertThat(bolso.skuVariante()).isEqualTo("JD9555-UNICO");
+        assertThat(bolso.importe()).isEqualByComparingTo("34299.30");
+        assertThat(lineas.get(1).talle()).isEqualTo("40");
+        assertThat(lineas.get(2).descripcion()).isEqualTo("Mochila Classic 3 Barras Logo");
+        assertThat(lineas.get(2).cantidad()).isEqualTo(2);
+        // El total no se confunde con el importe del último renglón
+        assertThat(adidas.leer(texto).total()).isEqualByComparingTo("161697.20");
+    }
+
+    @Test
     void seven_leeRenglonesDeVariasLineasYDeduceElTalle() {
         FacturaLeida f = seven.leer(SEVEN);
 
