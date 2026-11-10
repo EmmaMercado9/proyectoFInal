@@ -32,6 +32,9 @@ public interface ProductVariantRepository
 
     boolean existsBySku(String sku);
 
+    /** El SKU ya lo usa una variante de OTRO producto */
+    boolean existsBySkuAndProduct_IdProductNot(String sku, java.util.UUID idProduct);
+
     Optional<ProductVariantEntity> findFirstBySkuIgnoreCase(String sku);
 
     boolean existsByCodigoBarraAndVariantIdNot(String codigoBarra, Long variantId);

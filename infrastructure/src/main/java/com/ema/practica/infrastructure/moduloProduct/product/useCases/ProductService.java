@@ -146,8 +146,9 @@ public class ProductService {
 
         validarCombinacionUnica(product, dto.getAtributos());
         String skuVariante = blankToNull(dto.getSku());
-        if (skuVariante != null && variantRepository.existsBySku(skuVariante)) {
-            throw new VentaInvalidaException("Ya existe otra variante con el SKU " + skuVariante);
+        // Los talles de un mismo producto pueden compartir el SKU; otro producto no
+        if (skuVariante != null && variantRepository.existsBySkuAndProduct_IdProductNot(skuVariante, productId)) {
+            throw new VentaInvalidaException("El SKU " + skuVariante + " ya lo usa otro producto");
         }
 
         ProductVariantEntity variante = getProductVariantEntity(dto, product);
@@ -230,8 +231,8 @@ public class ProductService {
         }
         String codigoBarra = blankToNull(dto.getCodigoBarra());
         String sku = blankToNull(dto.getSku());
-        if (sku != null && variantRepository.existsBySkuAndVariantIdNot(sku, variantId)) {
-            throw new VentaInvalidaException("Ya existe otra variante con ese SKU");
+        if (sku != null && variantRepository.existsBySkuAndProduct_IdProductNot(sku, variante.getProduct().getIdProduct())) {
+            throw new VentaInvalidaException("El SKU " + sku + " ya lo usa otro producto");
         }
         if (codigoBarra != null && variantRepository.existsByCodigoBarraAndVariantIdNot(codigoBarra, variantId)) {
             throw new VentaInvalidaException("Ya existe otra variante con ese código de barras");

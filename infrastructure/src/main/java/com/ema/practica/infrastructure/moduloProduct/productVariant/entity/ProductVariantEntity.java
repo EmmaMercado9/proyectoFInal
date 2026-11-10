@@ -38,7 +38,8 @@ public class ProductVariantEntity {
     @JsonIgnore
     private ProductEntity product;
 
-    @Column(name = "sku", unique = true)
+    // Puede repetirse entre los talles de un mismo producto (el SKU de la etiqueta)
+    @Column(name = "sku")
     private String sku;
 
     @Column(name = "codigo_barra", unique = true)
