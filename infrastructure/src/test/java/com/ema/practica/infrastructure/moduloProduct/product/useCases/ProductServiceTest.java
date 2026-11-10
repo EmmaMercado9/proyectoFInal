@@ -154,6 +154,60 @@ class ProductServiceTest {
                 .isInstanceOf(VentaInvalidaException.class);
     }
 
+    // ── SKU y código de barras de las variantes ─────────────────────────────
+
+    private com.ema.practica.infrastructure.moduloProduct.productVariant.rest.model.VarianteRequestDTO nueva(String sku, String codigo) {
+        var d = new com.ema.practica.infrastructure.moduloProduct.productVariant.rest.model.VarianteRequestDTO();
+        d.setSku(sku);
+        d.setCodigoBarra(codigo);
+        d.setPrecioVenta(new BigDecimal("100"));
+        d.setCosto(new BigDecimal("50"));
+        d.setStock(1);
+        var talle = new com.ema.practica.infrastructure.moduloProduct.atributos.rest.model.AtributoValorDTO();
+        talle.setAtributoId(1L);
+        talle.setValor("40");
+        d.setAtributos(java.util.List.of(talle));
+        return d;
+    }
+
+    @Test
+    void agregarVariante_mismoSkuQueLosOtrosTallesDelProducto_seGuarda() throws Exception {
+        producto.setTieneVariantes(true);
+        when(productRepository.findById(id)).thenReturn(Optional.of(producto));
+        when(variantRepository.existsBySkuAndProduct_IdProductNot("IH9536", id)).thenReturn(false);
+        when(atributoRepository.findById(1L)).thenReturn(Optional.of(new com.ema.practica.infrastructure.moduloProduct.atributos.entity.AtributoEntity()));
+        when(variantRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        productService.agregarVariante(id, nueva(" IH9536 ", "  "), null);
+
+        verify(variantRepository).save(org.mockito.ArgumentMatchers.argThat(v ->
+                "IH9536".equals(v.getSku()) && v.getCodigoBarra() == null));
+    }
+
+    @Test
+    void agregarVariante_skuDeOtroProducto_falla() {
+        producto.setTieneVariantes(true);
+        when(productRepository.findById(id)).thenReturn(Optional.of(producto));
+        when(variantRepository.existsBySkuAndProduct_IdProductNot("IH9536", id)).thenReturn(true);
+
+        assertThatThrownBy(() -> productService.agregarVariante(id, nueva("IH9536", null), null))
+                .isInstanceOf(VentaInvalidaException.class)
+                .hasMessageContaining("ya lo usa otro producto");
+        verify(variantRepository, never()).save(any());
+    }
+
+    @Test
+    void agregarVariante_codigoDeBarrasRepetido_avisaCualEs() {
+        producto.setTieneVariantes(true);
+        when(productRepository.findById(id)).thenReturn(Optional.of(producto));
+        when(variantRepository.existsByCodigoBarra("4069987464928")).thenReturn(true);
+
+        assertThatThrownBy(() -> productService.agregarVariante(id, nueva(null, "4069987464928"), null))
+                .isInstanceOf(VentaInvalidaException.class)
+                .hasMessageContaining("4069987464928");
+        verify(variantRepository, never()).save(any());
+    }
+
     // ── Eliminar / desactivar ───────────────────────────────────────────────
 
     private ProductVariantEntity variante(long id) {

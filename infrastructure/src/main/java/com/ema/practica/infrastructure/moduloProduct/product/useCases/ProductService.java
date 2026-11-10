@@ -150,6 +150,10 @@ public class ProductService {
         if (skuVariante != null && variantRepository.existsBySkuAndProduct_IdProductNot(skuVariante, productId)) {
             throw new VentaInvalidaException("El SKU " + skuVariante + " ya lo usa otro producto");
         }
+        String codigoVariante = blankToNull(dto.getCodigoBarra());
+        if (codigoVariante != null && variantRepository.existsByCodigoBarra(codigoVariante)) {
+            throw new VentaInvalidaException("El código de barras " + codigoVariante + " ya está cargado en otro producto o talle");
+        }
 
         ProductVariantEntity variante = getProductVariantEntity(dto, product);
 
@@ -235,7 +239,7 @@ public class ProductService {
             throw new VentaInvalidaException("El SKU " + sku + " ya lo usa otro producto");
         }
         if (codigoBarra != null && variantRepository.existsByCodigoBarraAndVariantIdNot(codigoBarra, variantId)) {
-            throw new VentaInvalidaException("Ya existe otra variante con ese código de barras");
+            throw new VentaInvalidaException("El código de barras " + codigoBarra + " ya está cargado en otro producto o talle");
         }
 
         variante.setSku(sku);

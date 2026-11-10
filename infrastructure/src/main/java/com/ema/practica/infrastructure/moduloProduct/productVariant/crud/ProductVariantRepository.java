@@ -39,6 +39,8 @@ public interface ProductVariantRepository
 
     boolean existsByCodigoBarraAndVariantIdNot(String codigoBarra, Long variantId);
 
+    boolean existsByCodigoBarra(String codigoBarra);
+
     // FOR UPDATE bloquea la fila hasta que termine la transacción
     // Evita que dos ventas simultáneas vendan el mismo stock
     @Lock(LockModeType.PESSIMISTIC_WRITE)
