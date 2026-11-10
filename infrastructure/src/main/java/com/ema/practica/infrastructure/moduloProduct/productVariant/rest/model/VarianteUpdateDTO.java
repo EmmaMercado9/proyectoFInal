@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Data
 public class VarianteUpdateDTO {
 
-    @NotBlank(message = "El SKU es obligatorio")
+    // Opcional: el SKU que trae la etiqueta, si cada talle tiene uno propio
     private String sku;
 
     private String codigoBarra;

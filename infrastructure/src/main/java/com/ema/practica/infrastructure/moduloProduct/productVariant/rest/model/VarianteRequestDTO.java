@@ -13,7 +13,7 @@ import java.util.List;
 
 @Data
 public class VarianteRequestDTO {
-    @NotBlank
+    // Opcional: el SKU que trae la etiqueta, si cada talle tiene uno propio
     private String sku;
     private String codigoBarra;
     private BigDecimal precioVenta;

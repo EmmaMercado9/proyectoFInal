@@ -145,6 +145,10 @@ public class ProductService {
         }
 
         validarCombinacionUnica(product, dto.getAtributos());
+        String skuVariante = blankToNull(dto.getSku());
+        if (skuVariante != null && variantRepository.existsBySku(skuVariante)) {
+            throw new VentaInvalidaException("Ya existe otra variante con el SKU " + skuVariante);
+        }
 
         ProductVariantEntity variante = getProductVariantEntity(dto, product);
 
@@ -225,14 +229,15 @@ public class ProductService {
             throw new VentaInvalidaException("La variante por defecto se edita desde el producto");
         }
         String codigoBarra = blankToNull(dto.getCodigoBarra());
-        if (variantRepository.existsBySkuAndVariantIdNot(dto.getSku(), variantId)) {
+        String sku = blankToNull(dto.getSku());
+        if (sku != null && variantRepository.existsBySkuAndVariantIdNot(sku, variantId)) {
             throw new VentaInvalidaException("Ya existe otra variante con ese SKU");
         }
         if (codigoBarra != null && variantRepository.existsByCodigoBarraAndVariantIdNot(codigoBarra, variantId)) {
             throw new VentaInvalidaException("Ya existe otra variante con ese código de barras");
         }
 
-        variante.setSku(dto.getSku());
+        variante.setSku(sku);
         variante.setCodigoBarra(codigoBarra);
         variante.setPrecioVenta(dto.getPrecioVenta());
         variante.setPrecioPro(dto.getPrecioPro());
@@ -252,8 +257,8 @@ public class ProductService {
     private static ProductVariantEntity getProductVariantEntity(VarianteRequestDTO dto, ProductEntity product) {
         ProductVariantEntity variante = new ProductVariantEntity();
         variante.setProduct(product);
-        variante.setSku(dto.getSku());
-        variante.setCodigoBarra(dto.getCodigoBarra());
+        variante.setSku(blankToNull(dto.getSku()));
+        variante.setCodigoBarra(blankToNull(dto.getCodigoBarra()));
         variante.setPrecioVenta(dto.getPrecioVenta());
         variante.setPrecioPro(dto.getPrecioPro());
         variante.setCosto(dto.getCosto());
