@@ -20,6 +20,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     Optional<OrderEntity> findByTrackingId(UUID trackingId);
 
+    /** El cliente tiene ventas a su nombre (no se puede borrar) */
+    boolean existsByClientEntity_IdClient(UUID idClient);
+
     Page<OrderEntity> findByUser_IdUser(UUID userId, Pageable pageable);
 
     @Query("""

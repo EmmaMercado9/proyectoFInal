@@ -40,4 +40,15 @@ public class ClientController {
     public ResponseEntity<ClientDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(clientService.getById(id));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ClientDTO> actualizar(@PathVariable UUID id, @RequestBody ClientDTO dto) {
+        return ResponseEntity.ok(clientService.actualizar(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable UUID id) {
+        clientService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

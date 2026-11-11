@@ -13,6 +13,8 @@ import java.util.UUID;
 public interface ClientRepository extends JpaRepository<ClientEntity, UUID> {
 
     boolean existsByDni(String dni);
+
+    boolean existsByDniAndIdClientNot(String dni, UUID idClient);
     @Query("""
         SELECT c FROM ClientEntity c
         WHERE

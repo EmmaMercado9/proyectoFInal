@@ -67,6 +67,8 @@ public class SecurityConfig {
                         // ── Clientes: el colaborador puede consultar y dar de alta
                         .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasAnyRole(ADMIN, COLABORADOR)
                         .requestMatchers(HttpMethod.POST, "/api/clientes").hasAnyRole(ADMIN, COLABORADOR)
+                        // Corregir datos de un cliente: ambos; eliminarlo: solo ADMIN (regla de más abajo)
+                        .requestMatchers(HttpMethod.PUT, "/api/clientes/**").hasAnyRole(ADMIN, COLABORADOR)
 
                         // ── Planes de pago: el POS los lee; solo ADMIN los modifica
                         .requestMatchers(HttpMethod.GET, "/api/pagos/planes").hasAnyRole(ADMIN, COLABORADOR)

@@ -5,6 +5,7 @@ import com.ema.practica.infrastructure.exception.VentaInvalidaException;
 import com.ema.practica.infrastructure.moduloProduct.client.crud.ClientRepository;
 import com.ema.practica.infrastructure.moduloProduct.client.entity.ClientEntity;
 import com.ema.practica.infrastructure.moduloProduct.client.rest.model.ClientDTO;
+import com.ema.practica.infrastructure.order.crud.OrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class ClientService {
 
     private final ClientRepository clientRepository;
+    private final OrderRepository orderRepository;
 
     // ─── Buscar por nombre, DNI, email o username ─────────────────────────
     public List<ClientDTO> buscar(String q) {
@@ -52,6 +54,38 @@ public class ClientService {
 
         ClientEntity guardado = clientRepository.save(cliente);
         return toDTO(guardado);
+    }
+
+    // ─── Editar cliente ───────────────────────────────────────────────────
+    @Transactional
+    public ClientDTO actualizar(UUID id, ClientDTO dto) {
+        ClientEntity cliente = clientRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente", id));
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new VentaInvalidaException("El nombre es obligatorio");
+        }
+        String dni = vacioANull(dto.getDni());
+        if (dni != null && clientRepository.existsByDniAndIdClientNot(dni, id)) {
+            throw new VentaInvalidaException("Ya existe otro cliente con DNI " + dni);
+        }
+        cliente.setName(dto.getName().trim());
+        cliente.setUsername(vacioANull(dto.getUsername()));
+        cliente.setMail(vacioANull(dto.getMail()));
+        cliente.setDni(dni);
+        return toDTO(cliente);
+    }
+
+    // ─── Eliminar cliente ─────────────────────────────────────────────────
+    @Transactional
+    public void eliminar(UUID id) {
+        ClientEntity cliente = clientRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente", id));
+        // Las ventas guardan quién compró: borrarlo dejaría ventas y facturas sin cliente
+        if (orderRepository.existsByClientEntity_IdClient(id)) {
+            throw new VentaInvalidaException(
+                    "No se puede eliminar a " + cliente.getName() + ": tiene ventas registradas a su nombre");
+        }
+        clientRepository.delete(cliente);
     }
 
     private static String vacioANull(String s) {
